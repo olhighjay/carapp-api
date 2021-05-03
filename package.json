@@ -1,0 +1,38 @@
+{
+  "name": "car-booking-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon app.js",
+    "lint": "eslint .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.22.0",
+    "@typescript-eslint/parser": "^4.22.0",
+    "eslint": "^7.25.0",
+    "eslint-plugin-react": "^7.23.2"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "chalk": "^4.1.1",
+    "express": "^4.17.1",
+    "express-validator": "^6.10.1",
+    "mongoose": "^5.12.6",
+    "nodemon": "^2.0.7"
+  },
+  "nodemonConfig": {
+    "restartable": "rs",
+    "ignore": [
+      "node_modules/**/node_modules"
+    ],
+    "delay": "2500",
+    "env": {
+      "NODE_ENV": "development",
+      "PORT": 4000
+    }
+  }
+}
