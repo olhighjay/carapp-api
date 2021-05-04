@@ -44,8 +44,9 @@ function carsController(Car) {
         car: finalCar, 
         request: {
           type: 'GET',
-          // url: `http://${req.headers.host}/api/posts/${post._id}`,
-          // viewByCategory: `http://${req.headers.host}/api/posts?category=${category}`
+          url: `http://${req.headers.host}/api/cars/${finalCar._id}`,
+          viewByCategory: `http://${req.headers.host}/api/cars?status=${finalCar.status}`,
+          viewByCondition: `http://${req.headers.host}/api/cars?condition=${finalCar.condition}`
         }
       };
       return showCar;
@@ -84,6 +85,7 @@ function carsController(Car) {
         properties: req.body.properties,
         condition: req.body.condition,
         status: req.body.status,
+        category: req.body.category
       });
       // if(req.file){
       //   post.coverImage= req.file.path;
@@ -97,7 +99,8 @@ function carsController(Car) {
         car: car,
         request: {
           type: 'GET',
-          url: 'http://localhost:4000/api/cars/' + car._id
+          Desrciption: 'View car by id',
+          url: req.headers.host + '/api/cars/' + car._id
         }
       });
     }
@@ -110,10 +113,45 @@ function carsController(Car) {
     
   }
 
+  async   function getCarById(req, res, next){
+    const id = req.params.carId;
+    try{
+     
+      const car = await Car.findById(id);
+      // .select("product quantity _id")
+      // const user = populate('user');
+        if(car){
+          return res.status(200).json({
+            Car: car,
+            request: {
+              type: 'GET',
+              Desrciption: "View all cars",
+              url: req.headers.host + '/api/cars/' 
+            }
+          });
+        }else{
+          res.status(404).json({
+            error: "Car not found"
+          });
+
+        }
+        
+      
+     
+    }
+    catch(err){
+      console.log(err.message);
+      res.status(500).json({
+        error: err.stack
+      });
+    }
+  };
+
 
   return {
     get,
     post,
+    getCarById,
   };
 };
 

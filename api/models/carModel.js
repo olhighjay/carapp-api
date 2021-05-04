@@ -32,6 +32,12 @@ const carModel = new Schema(
       enum : ['available','unavailable','booked'],
       default: 'available'
     },
+    category: {
+      type: String,
+      enum : ['senior executive','executive','senior staff','staff'],
+      default: 'staff',
+      required: true,
+    },
   }, {timestamps: true, 
     toJSON: { virtuals: true }, 
     toObject: { virtuals: true }
