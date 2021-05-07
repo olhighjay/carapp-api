@@ -18,18 +18,24 @@ function carsController(Car) {
     if(req.query.status){
       query.status = req.query.status;
     }
+    if(req.query.category){
+      query.category = req.query.category;
+    }
     let filteredCar = cars && cars.filter(car => {
       // console.log(post.category["name"]);
-      if(car.condition !== undefined && !req.query.status){
+      if(car.condition !== undefined && !req.query.status && !req.query.category){
         return car.condition === query.condition
       }
-      else if(car.status !== undefined && !req.query.condition ){
+      else if(car.status !== undefined && !req.query.condition && !req.query.category){
         return car.status === query.status
+      }
+      else if(car.category !== undefined && !req.query.condition && !req.query.status){
+        return car.category === query.category
       }
     });
     let finCars;
     const carsFunc = () => {
-      if(req.query.condition || req.query.status){
+      if(req.query.condition || req.query.status ||  req.query.category){
         finCars =  filteredCar;
       }
       else{
@@ -45,8 +51,9 @@ function carsController(Car) {
         request: {
           type: 'GET',
           url: `http://${req.headers.host}/api/cars/${finalCar._id}`,
-          viewByCategory: `http://${req.headers.host}/api/cars?status=${finalCar.status}`,
-          viewByCondition: `http://${req.headers.host}/api/cars?condition=${finalCar.condition}`
+          viewByStatus: `http://${req.headers.host}/api/cars?status=${finalCar.status}`,
+          viewByCondition: `http://${req.headers.host}/api/cars?condition=${finalCar.condition}`,
+          viewByCategory: `http://${req.headers.host}/api/cars?category=${finalCar.category}`
         }
       };
       return showCar;
@@ -64,7 +71,7 @@ function carsController(Car) {
   }
   }
   async function post(req, res, next){
-    console.log("Here I am")
+    console.log(req.file);
     console.log(req.body);
     // const id = req.body.category;
     try{
@@ -75,7 +82,7 @@ function carsController(Car) {
       //       error: "Category does not exist"
       //     });
       //   }
-        // console.log(category);
+        // console.log(req);
       const car = new Car({
         _id: new mongoose.Types.ObjectId(),
         plate_number: req.body.plate_number,
@@ -87,9 +94,10 @@ function carsController(Car) {
         status: req.body.status,
         category: req.body.category
       });
-      // if(req.file){
-      //   post.coverImage= req.file.path;
-      // }
+      if(req.file){
+        car.display_picture= req.file.path;
+      }
+      console.log(car);
       // post.author = req.userData.userId
       await car.save();
       // console.log(post);

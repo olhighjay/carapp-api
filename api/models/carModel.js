@@ -38,6 +38,7 @@ const carModel = new Schema(
       default: 'staff',
       required: true,
     },
+    display_picture: {type: String}
   }, {timestamps: true, 
     toJSON: { virtuals: true }, 
     toObject: { virtuals: true }

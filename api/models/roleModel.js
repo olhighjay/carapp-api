@@ -15,4 +15,4 @@ const roleModel = new Schema(
   }
 );
 
-module.exports = mongoose.model('Category', roleModel);
+module.exports = mongoose.model('Role', roleModel);
