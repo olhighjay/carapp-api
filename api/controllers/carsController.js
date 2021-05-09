@@ -100,8 +100,6 @@ function carsController(Car) {
       console.log(car);
       // post.author = req.userData.userId
       await car.save();
-      // console.log(post);
-      // console.log(post.user);
       res.status(201).json({
         message: 'Car was created successfully',
         car: car,
@@ -155,11 +153,76 @@ function carsController(Car) {
     }
   };
 
+  async function updateCar(req, res){
+   
+    const id = req.params.carId;
+    const update = req.body;
+    const keysArray = Object.keys(update);
+   
+    try{
+      const car = await Car.findById(id);
+      // return res.send(catg);
+      if(!car){
+        return res.status(404).json({
+          error: "Car not found"
+        });
+      }
+
+      // Check if the category in the request is valid
+      // if(update.category){
+      //   const catg = await Category.findById(update.category);
+      //   if(!catg){
+      //     throw new Error('Invalid category');
+      //   }
+      // }
+      // Check if the author in the request is valid
+    // if(update.author){
+      //   const author = await User.findById(update.author);
+      //   if(!author){
+      //     throw new Error('Invalid Author');
+      //   }
+    // }
+
+      keysArray.forEach(key => {
+        car[key] = update[key];
+      })
+      //Update cover image
+      if(req.file){
+        // delete the image from storage
+        fs.unlink( car.display_picture, err => { 
+          if(err){
+            console.log(err);
+          }
+        });
+        // upload the image from  the database
+        car.display_picture = req.file.path;
+      }
+
+      await car.save();
+      
+      // const category = await Category.findOneAndUpdate(id, {$set: {name: req.body.newName, description: req.body.newDescription}}, {
+      //   new: true
+      // });
+      
+      res.status(201).json({
+        message: "Car updated successfully",
+        car: car
+      });  
+    }
+    catch(err){
+      console.log(err.message);
+      res.status(500).json({
+        error: err.message
+      });
+    }
+  };
+
 
   return {
     get,
     post,
     getCarById,
+    updateCar
   };
 };
 

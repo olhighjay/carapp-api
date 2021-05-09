@@ -48,6 +48,8 @@ upload.any();
 router.get('/', carsController.get);
 router.post('/', upload.single('display_picture'), carsController.post);
 router.get('/:carId', carsController.getCarById);
+router.post('/:carId', upload.single('display_picture'), carsController.updateCar);
+
 
 
 module.exports = router;
