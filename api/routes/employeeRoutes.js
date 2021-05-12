@@ -48,11 +48,11 @@ upload.any();
 
 
 
-  // router.get('/', usersController.get);
+  router.get('/', employeesController.getEmployees);
   router.post('/register',[validationWare], validationErrors, upload.single('display_picture'), employeesController.registerEmployee);
   // router.post('/signin', usersController.signIn);
-  // router.get('/:employeeId', usersController.getUserById);
-  // router.post('/:employeeId', usersController.updateUser);
+  router.get('/:employeeId', employeesController.getEmployeeById );
+  router.post('/:employeeId', upload.single('display_picture'), employeesController.updateEmployee);
   // router.delete('/:employeeId', adminWare, usersController.deleteUser);
 
 
