@@ -50,7 +50,7 @@ upload.any();
 
   router.get('/', employeesController.getEmployees);
   router.post('/register',[validationWare], validationErrors, upload.single('display_picture'), employeesController.registerEmployee);
-  // router.post('/signin', usersController.signIn);
+  router.post('/login', employeesController.signIn);
   router.get('/:employeeId', employeesController.getEmployeeById );
   router.post('/:employeeId', upload.single('display_picture'), employeesController.updateEmployee);
   // router.delete('/:employeeId', adminWare, usersController.deleteUser);

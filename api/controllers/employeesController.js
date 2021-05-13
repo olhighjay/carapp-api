@@ -211,15 +211,56 @@ function employeesController(Employee) {
   };
 
 
+  async function signIn(req, res, next){
+    
+    try{
+      //check for email uniqueness
+      const employee = await Employee.findOne({ email: req.body.email});
+      if(!employee){
+        return res.status(401).json({
+          message: 'Auth Failed on email'
+        });
+      }
+      
+      const verified = await bcrypt.compare(req.body.password, employee.password)
+      console.log(chalk.blue(verified));
+      if(!verified){
+        return res.status(401).json({
+          message: 'Auth Failed on password'
+        });
+      }
+      const token = jwt.sign({
+        role: employee.role,
+        category: employee.category,
+        userId: employee._id
+        }, process.env.JWT_KEY,
+        {
+          expiresIn: "100h"
+        }
+      );
+      return res.status(200).json({
+        message: 'Auth Successful',
+        token:token,
+        Employee: employee
+      });
+    }
+    catch(err) {
+      console.log(err);
+      res.status(500).json({
+        error: err.message
+      });
+    };
+  };
+
+
 
 
   return {
     getEmployees,
     registerEmployee,
-    // signIn,
+    signIn,
     getEmployeeById,
     updateEmployee,
-    // getUserById,
     // deleteUser
   };
 }
