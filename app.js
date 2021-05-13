@@ -7,6 +7,8 @@ const mongoose =  require('mongoose');
 const chalk = require('chalk');
 const app = express();
 
+
+const authRouter = require('./api/routes/authRoutes');
 const carRouter = require('./api/routes/carRoutes');
 const employeeRouter = require('./api/routes/employeeRoutes');
 const driverRouter = require('./api/routes/driverRoutes');
@@ -36,7 +38,7 @@ app.use((req, res, next) => {
 })
 
 
-
+app.use('/api/', authRouter);
 app.use('/api/cars', carRouter);
 app.use('/api/employees', employeeRouter);
 app.use('/api/drivers', driverRouter);
