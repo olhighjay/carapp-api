@@ -18,6 +18,12 @@ const employeeModel = new Schema(
       unique: true,
       match: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
     },
+    phone_number:  {
+      type: Number,
+      required: false,
+      unique: true,
+      match: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
+    },
     password:  {
       type: String,
       required: true,
@@ -27,7 +33,7 @@ const employeeModel = new Schema(
     role: {
       type: String,
       required: true,
-      enum : ['superadmin','admin','employee'],
+      enum : ['superadmin','admin','employee', 'driver'],
     },
     category: {
       type: String,

@@ -7,55 +7,49 @@ const { response } = require('express');
 const { query } = require('express-validator');
 
 
-function employeesController(Employee) {
+function driversController(Driver) {
 
-  async function getEmployees(req, res, next){
+  async function getDrivers(req, res, next){
     try{
-        const employees = await Employee.find({role: 'employee'});
-        
-        if(req.query.role){
-          query.role = req.query.role;
-        };
+        const drivers = await Driver.find({role: 'driver'});
+        // console.log(drivers);
         if(req.query.category){
           query.category = req.query.category;
         }
-        let filteredEmployees = employees && employees.filter(employee => {
+        let filtereddrivers = drivers && drivers.filter(driver => {
           // console.log(post.category["name"]);
-          if(employee.role !== undefined && !req.query.category){
-            return employee.role === query.role
-          }
-          else if(employee.category !== undefined && !req.query.role){
-            return employee.category === query.category
+          if(driver.category !== undefined && !req.query.role){
+            return driver.category === query.category
           }
         });
-        let finEmployees;
-        const employeesFunc = () => {
-          if(req.query.role ||  req.query.category){
-            finEmployees =  filteredEmployees;
+        let findrivers;
+        const driversFunc = () => {
+          if(req.query.category){
+            findrivers =  filtereddrivers;
           }
           else{
-            finEmployees = employees;
+            findrivers = drivers;
           }
-          return finEmployees
+          return findrivers
         }
-        const finalEmployees = employeesFunc();
+        const finaldrivers = driversFunc();
         // console.log(postz);;
-        const response =  finalEmployees && finalEmployees.map(finalEmployee => {
-          let showEmployee = {
-            employee: finalEmployee, 
+        const response =  finaldrivers && finaldrivers.map(finaldriver => {
+          let showdriver = {
+            driver: finaldriver, 
             request: {
               type: 'GET',
-              url: `http://${req.headers.host}/api/employees/${finalEmployee._id}`,
-              viewByStatus: `http://${req.headers.host}/api/employees?role=${finalEmployee.role}`,
-              viewByCategory: `http://${req.headers.host}/api/employees?category=${finalEmployee.category}`
+              url: `http://${req.headers.host}/api/drivers/${finaldriver._id}`,
+              viewByStatus: `http://${req.headers.host}/api/drivers?role=${finaldriver.role}`,
+              viewByCategory: `http://${req.headers.host}/api/drivers?category=${finaldriver.category}`
             }
           };
-          return showEmployee;
+          return showdriver;
         });
         
         res.status(200).json({
-          count: finalEmployees.length,
-          employees:  response
+          count: finaldrivers.length,
+          drivers:  response
         });
 
     }
@@ -66,10 +60,10 @@ function employeesController(Employee) {
   };
 
 
-  async function registerEmployee(req, res, next){
+  async function registerdriver(req, res, next){
     try{
       //check for email uniqueness
-      const availableUser = await Employee.find({ email: req.body.email });
+      const availableUser = await driver.find({ email: req.body.email });
       if(availableUser.length > 0){
         return res.status(409).json({
           message: 'Email already taken by another user'
@@ -84,7 +78,7 @@ function employeesController(Employee) {
 
       const hashedPassword = await bcrypt.hash('password', 13);
     
-      const employee = new Employee({
+      const driver = new driver({
         _id: new mongoose.Types.ObjectId(),
         firstName: req.body.firstName,
         lastName: req.body.lastName,
@@ -93,11 +87,11 @@ function employeesController(Employee) {
         password: hashedPassword,
         category: req.body.category,
       });
-      await employee.save();
+      await driver.save();
       res.status(201).json({
-        message: 'Employee was created successfully',
-        createdEmployee: {
-          employee: employee
+        message: 'driver was created successfully',
+        createddriver: {
+          driver: driver
         }
       });
     }
@@ -110,41 +104,41 @@ function employeesController(Employee) {
   };
 
 
-  async   function getEmployeeById(req, res, next){
-    const id = req.params.employeeId;
+  async   function getdriverById(req, res, next){
+    const id = req.params.driverId;
     try{
      
-      const employee = await Employee.find({role: 'employee', _id:id});
+      const driver = await driver.find({role: 'driver', _id:id});
       // .select("product quantity _id")
       // const user = populate('user');
       // const posts = await Post.find({author: user._id}).select("title")
-        console.log(employee);
-        if(employee.length > 0){
+        console.log(driver);
+        if(driver.length > 0){
           res.status(200).json({
-            employee : {
-            "category": employee[0].category,
-            "_id": employee[0]._id,
-            "firstName": employee[0].firstName,
-            "lastName": employee[0].lastName,
-            "email": employee[0].email,
-            "role": employee[0].role,
-            "createdAt": employee[0].createdAt,
-            "updatedAt": employee[0].updatedAt,
+            driver : {
+            "category": driver[0].category,
+            "_id": driver[0]._id,
+            "firstName": driver[0].firstName,
+            "lastName": driver[0].lastName,
+            "email": driver[0].email,
+            "role": driver[0].role,
+            "createdAt": driver[0].createdAt,
+            "updatedAt": driver[0].updatedAt,
             },
             // writtenPosts: {
             //   // count: posts.length,
-            //   employee
+            //   driver
             // },
             request: {
               type: 'GET',
               description: 'Get all the users', 
-              url: 'http://localhost:4000/api/employees/'
+              url: 'http://localhost:4000/api/drivers/'
             }
           });
         }
         else{
           res.status(404).json({
-            error: "Employee not found"
+            error: "driver not found"
           });
 
         }
@@ -158,56 +152,56 @@ function employeesController(Employee) {
   };
 
 
-  async function updateEmployee(req, res, next){
+  async function updatedriver(req, res, next){
     
-    const id = req.params.employeeId;
+    const id = req.params.driverId;
     const update = req.body;
     const updateToArray = Object.keys(update)
    
     try{
-     const employee = await Employee.find({role: 'employee', _id:id});
-      // console.log(employee);
-      if(employee.length < 1){
+     const driver = await driver.find({role: 'driver', _id:id});
+      // console.log(driver);
+      if(driver.length < 1){
         return res.status(404).json({
-          error: "Employee not found"
+          error: "driver not found"
         });
       }
 
       updateToArray.forEach(key => {
-        employee[0][key] = update[key];
+        driver[0][key] = update[key];
       });
 
       if(req.file){
         // delete the image from storage
-        if(employee[0].display_picture){
-          fs.unlink( employee[0].display_picture, err => { 
+        if(driver[0].display_picture){
+          fs.unlink( driver[0].display_picture, err => { 
             if(err){
               console.log(err);
             }
           });
         }
         // upload the image from  the database
-        employee[0].display_picture = req.file.path;
+        driver[0].display_picture = req.file.path;
       }
       
       if(update.password){
         const hashedPassword = await bcrypt.hash(req.body.password, 13);
-        employee[0].password = hashedPassword;
+        driver[0].password = hashedPassword;
       }
 
-      await employee[0].save();
+      await driver[0].save();
       
       res.status(201).json({
-        message: "Employee updated successfully",
-        employee : {
-          "category": employee[0].category,
-          "_id": employee[0]._id,
-          "firstName": employee[0].firstName,
-          "lastName": employee[0].lastName,
-          "email": employee[0].email,
-          "role": employee[0].role,
-          "createdAt": employee[0].createdAt,
-          "updatedAt": employee[0].updatedAt,
+        message: "driver updated successfully",
+        driver : {
+          "category": driver[0].category,
+          "_id": driver[0]._id,
+          "firstName": driver[0].firstName,
+          "lastName": driver[0].lastName,
+          "email": driver[0].email,
+          "role": driver[0].role,
+          "createdAt": driver[0].createdAt,
+          "updatedAt": driver[0].updatedAt,
           }
       });  
     }
@@ -224,14 +218,14 @@ function employeesController(Employee) {
     
     try{
       //check for email uniqueness
-      const employee = await Employee.findOne({ email: req.body.email});
-      if(!employee){
+      const driver = await driver.findOne({ email: req.body.email});
+      if(!driver){
         return res.status(401).json({
           message: 'Auth Failed on email'
         });
       }
       
-      const verified = await bcrypt.compare(req.body.password, employee.password)
+      const verified = await bcrypt.compare(req.body.password, driver.password)
       console.log(chalk.blue(verified));
       if(!verified){
         return res.status(401).json({
@@ -239,9 +233,9 @@ function employeesController(Employee) {
         });
       }
       const token = jwt.sign({
-        role: employee.role,
-        category: employee.category,
-        userId: employee._id
+        role: driver.role,
+        category: driver.category,
+        userId: driver._id
         }, process.env.JWT_KEY,
         {
           expiresIn: "100h"
@@ -250,7 +244,7 @@ function employeesController(Employee) {
       return res.status(200).json({
         message: 'Auth Successful',
         token:token,
-        Employee: employee
+        driver: driver
       });
     }
     catch(err) {
@@ -262,23 +256,23 @@ function employeesController(Employee) {
   };
 
 
-  async function deleteEmployee(req, res, next){
-    const id = req.params.employeeId;
+  async function deletedriver(req, res, next){
+    const id = req.params.driverId;
     try{
-      const employee = await Employee.find({role: 'employee', _id:id});
-      // console.log(employee);
-      if(employee.length < 1){
+      const driver = await driver.find({role: 'driver', _id:id});
+      // console.log(driver);
+      if(driver.length < 1){
           return res.status(404).json({
-            error: "Employee does not exist"
+            error: "driver does not exist"
           });
         }
-        await employee[0].remove();
+        await driver[0].remove();
         res.status(200).json({
-          message: "Employee deleted successfully",
+          message: "driver deleted successfully",
           request: {
             type: 'POST',
-            description: 'Create new employee', 
-            url: 'http://localhost:4000/api/employees/',
+            description: 'Create new driver', 
+            url: 'http://localhost:4000/api/drivers/',
             body: {
               firstName: 'String, required',
               lastName: 'String, required',
@@ -302,13 +296,13 @@ function employeesController(Employee) {
 
 
   return {
-    getEmployees,
-    registerEmployee,
-    getEmployeeById,
-    updateEmployee,
+    getDrivers,
+    registerdriver,
+    getdriverById,
+    updatedriver,
     signIn,
-    deleteEmployee
+    deletedriver
   };
 }
 
-module.exports = employeesController;
+module.exports = driversController;

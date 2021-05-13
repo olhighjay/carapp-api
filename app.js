@@ -9,6 +9,7 @@ const app = express();
 
 const carRouter = require('./api/routes/carRoutes');
 const employeeRouter = require('./api/routes/employeeRoutes');
+const driverRouter = require('./api/routes/driverRoutes');
 const roleRouter = require('./api/routes/roleRoutes');
 
 // var expressBusboy = require('express-busboy');
@@ -38,6 +39,7 @@ app.use((req, res, next) => {
 
 app.use('/api/cars', carRouter);
 app.use('/api/employees', employeeRouter);
+app.use('/api/drivers', driverRouter);
 app.use('/api/roles', roleRouter);
 
 
