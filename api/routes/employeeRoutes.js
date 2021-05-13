@@ -53,7 +53,7 @@ upload.any();
   router.post('/login', employeesController.signIn);
   router.get('/:employeeId', employeesController.getEmployeeById );
   router.post('/:employeeId', upload.single('display_picture'), employeesController.updateEmployee);
-  // router.delete('/:employeeId', adminWare, usersController.deleteUser);
+  router.delete('/:employeeId', employeesController.deleteEmployee);
 
 
 module.exports = router;

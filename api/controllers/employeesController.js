@@ -253,15 +253,51 @@ function employeesController(Employee) {
   };
 
 
+  async function deleteEmployee(req, res, next){
+    const id = req.params.employeeId;
+    try{
+        const employee = await Employee.findById(id);
+        if(!employee){
+          return res.status(404).json({
+            error: "Employee does not exist"
+          });
+        }
+        await employee.remove();
+        res.status(200).json({
+          message: "Employee deleted successfully",
+          request: {
+            type: 'POST',
+            description: 'Create new employee', 
+            url: 'http://localhost:4000/api/employees/',
+            body: {
+              firstName: 'String, required',
+              lastName: 'String, required',
+              email: 'String, required, unique',
+              password: 'String, required',
+              role: 'String',
+              category: 'String',
+            }
+          }
+        });
+    }
+    catch(err) {
+      console.log(err);
+      res.status(500).json({
+        error: err.message
+      });
+    };
+  }
+
+
 
 
   return {
     getEmployees,
     registerEmployee,
-    signIn,
     getEmployeeById,
     updateEmployee,
-    // deleteUser
+    signIn,
+    deleteEmployee
   };
 }
 
