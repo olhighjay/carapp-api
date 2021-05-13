@@ -49,11 +49,9 @@ upload.any();
 
 
   router.get('/', driversController.getDrivers);
-  router.post('/register',[validationWare], validationErrors, upload.single('display_picture'), driversController.registerdriver);
-  router.post('/login', driversController.signIn);
-  router.get('/:driverId', driversController.getdriverById );
-  router.post('/:driverId', upload.single('display_picture'), driversController.updatedriver);
-  router.delete('/:driverId', driversController.deletedriver);
+  router.get('/:driverId', driversController.getDriverById );
+  router.post('/:driverId', upload.single('display_picture'), driversController.updateDriver);
+  router.delete('/:driverId', driversController.deleteDriver);
 
 
 module.exports = router;

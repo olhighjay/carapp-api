@@ -60,55 +60,11 @@ function driversController(Driver) {
   };
 
 
-  async function registerdriver(req, res, next){
-    try{
-      //check for email uniqueness
-      const availableUser = await driver.find({ email: req.body.email });
-      if(availableUser.length > 0){
-        return res.status(409).json({
-          message: 'Email already taken by another user'
-        });
-      }
-
-      // if(!req.body.password){
-      //   return res.status(409).json({
-      //     message: 'Password is required'
-      //   });
-      // }
-
-      const hashedPassword = await bcrypt.hash('password', 13);
-    
-      const driver = new driver({
-        _id: new mongoose.Types.ObjectId(),
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        email: req.body.email,
-        role: req.body.role,
-        password: hashedPassword,
-        category: req.body.category,
-      });
-      await driver.save();
-      res.status(201).json({
-        message: 'driver was created successfully',
-        createddriver: {
-          driver: driver
-        }
-      });
-    }
-    catch(err) {
-      res.status(500).json({
-        error: err.message
-      });
-    };    
-    
-  };
-
-
-  async   function getdriverById(req, res, next){
+  async   function getDriverById(req, res, next){
     const id = req.params.driverId;
     try{
      
-      const driver = await driver.find({role: 'driver', _id:id});
+      const driver = await Driver.find({role: 'driver', _id:id});
       // .select("product quantity _id")
       // const user = populate('user');
       // const posts = await Post.find({author: user._id}).select("title")
@@ -152,14 +108,14 @@ function driversController(Driver) {
   };
 
 
-  async function updatedriver(req, res, next){
+  async function updateDriver(req, res, next){
     
     const id = req.params.driverId;
     const update = req.body;
     const updateToArray = Object.keys(update)
    
     try{
-     const driver = await driver.find({role: 'driver', _id:id});
+     const driver = await Driver.find({role: 'driver', _id:id});
       // console.log(driver);
       if(driver.length < 1){
         return res.status(404).json({
@@ -199,6 +155,7 @@ function driversController(Driver) {
           "firstName": driver[0].firstName,
           "lastName": driver[0].lastName,
           "email": driver[0].email,
+          "phone_number": driver[0].phone_number,
           "role": driver[0].role,
           "createdAt": driver[0].createdAt,
           "updatedAt": driver[0].updatedAt,
@@ -214,52 +171,10 @@ function driversController(Driver) {
   };
 
 
-  async function signIn(req, res, next){
-    
-    try{
-      //check for email uniqueness
-      const driver = await driver.findOne({ email: req.body.email});
-      if(!driver){
-        return res.status(401).json({
-          message: 'Auth Failed on email'
-        });
-      }
-      
-      const verified = await bcrypt.compare(req.body.password, driver.password)
-      console.log(chalk.blue(verified));
-      if(!verified){
-        return res.status(401).json({
-          message: 'Auth Failed on password'
-        });
-      }
-      const token = jwt.sign({
-        role: driver.role,
-        category: driver.category,
-        userId: driver._id
-        }, process.env.JWT_KEY,
-        {
-          expiresIn: "100h"
-        }
-      );
-      return res.status(200).json({
-        message: 'Auth Successful',
-        token:token,
-        driver: driver
-      });
-    }
-    catch(err) {
-      console.log(err);
-      res.status(500).json({
-        error: err.message
-      });
-    };
-  };
-
-
-  async function deletedriver(req, res, next){
+  async function deleteDriver(req, res, next){
     const id = req.params.driverId;
     try{
-      const driver = await driver.find({role: 'driver', _id:id});
+      const driver = await Driver.find({role: 'driver', _id:id});
       // console.log(driver);
       if(driver.length < 1){
           return res.status(404).json({
@@ -297,11 +212,9 @@ function driversController(Driver) {
 
   return {
     getDrivers,
-    registerdriver,
-    getdriverById,
-    updatedriver,
-    signIn,
-    deletedriver
+    getDriverById,
+    updateDriver,
+    deleteDriver
   };
 }
 
