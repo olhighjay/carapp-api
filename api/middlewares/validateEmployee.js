@@ -2,11 +2,16 @@ const { check, validationResult } = require("express-validator");
 
   const validationWare = [
     check("firstName")
+      .exists()
+      .withMessage("firstname is required")
       .isLength({ min: 2 })
-      .withMessage("the first name must have minimum length of 3")
+      .withMessage("the first name cannot be less than 2 characters")
       .trim(),
 
     check("lastName")
+    .optional()
+    .isLength({ min: 2 })
+    .withMessage("the last name cannot be less than 2 characters")
     .trim(),
 
     check("email")

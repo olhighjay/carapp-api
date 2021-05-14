@@ -6,12 +6,12 @@ const { check, validationResult } = require("express-validator");
 const authWare = require('../middlewares/auth');
 // const adminWare = require('../middlewares/adminAuth');
 // const postWare = require('../middlewares/self-postAuth');
-const validationWare = require('../middlewares/validateEmployee');
+const validationWare = require('../middlewares/validateemployee');
 const validationErrors = require('../middlewares/validationErrors');
-const Employee = require('../models/employeeModel');
+const Admin = require('../models/employeeModel');
 // const Post = require('../models/postModel');
-// const employeesController = require('../controllers/employeesController')(User, Post);
-const employeesController = require('../controllers/employeesController')(Employee);
+// const driversController = require('../controllers/driversController')(User, Post);
+const adminsController = require('../controllers/adminsController')(Admin);
 
 const router = express.Router();
 
@@ -48,11 +48,10 @@ upload.any();
 
 
 
-  router.get('/', employeesController.getEmployees);
-  router.get('/all', employeesController.getUsers);
-  router.get('/:employeeId', employeesController.getEmployeeById );
-  router.post('/:employeeId', upload.single('display_picture'), employeesController.updateEmployee);
-  router.delete('/:employeeId', employeesController.deleteEmployee);
+  router.get('/',adminsController.getAdmins);
+  router.get('/:adminId', adminsController.getAdminById );
+  router.post('/:adminId', upload.single('display_picture'), adminsController.updateAdmin);
+  router.delete('/:adminId', adminsController.deleteAdmin);
 
 
 module.exports = router;

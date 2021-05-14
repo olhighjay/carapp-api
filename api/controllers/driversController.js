@@ -18,7 +18,7 @@ function driversController(Driver) {
         }
         let filtereddrivers = drivers && drivers.filter(driver => {
           // console.log(post.category["name"]);
-          if(driver.category !== undefined && !req.query.role){
+          if(driver.category !== undefined){
             return driver.category === query.category
           }
         });
@@ -77,7 +77,9 @@ function driversController(Driver) {
             "firstName": driver[0].firstName,
             "lastName": driver[0].lastName,
             "email": driver[0].email,
+            "phone_number": driver[0].phone_number,
             "role": driver[0].role,
+            "display_picture" : driver[0].display_picture,
             "createdAt": driver[0].createdAt,
             "updatedAt": driver[0].updatedAt,
             },
@@ -157,6 +159,7 @@ function driversController(Driver) {
           "email": driver[0].email,
           "phone_number": driver[0].phone_number,
           "role": driver[0].role,
+          "display_picture" : driver[0].display_picture,
           "createdAt": driver[0].createdAt,
           "updatedAt": driver[0].updatedAt,
           }

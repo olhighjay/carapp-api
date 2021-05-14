@@ -65,6 +65,62 @@ function employeesController(Employee) {
     }
   };
 
+  async function getUsers(req, res, next){
+    try{
+        const users = await Employee.find({role: ['admin', 'employee']});
+        
+        if(req.query.role){
+          query.role = req.query.role;
+        };
+        if(req.query.category){
+          query.category = req.query.category;
+        }
+        let filteredUsers = users && users.filter(user => {
+          // console.log(post.category["name"]);
+          if(user.role !== undefined && !req.query.category){
+            return user.role === query.role
+          }
+          else if(user.category !== undefined && !req.query.role){
+            return user.category === query.category
+          }
+        });
+        let finUsers;
+        const usersFunc = () => {
+          if(req.query.role ||  req.query.category){
+            finUsers =  filteredUsers;
+          }
+          else{
+            finUsers = users;
+          }
+          return finUsers
+        }
+        const finalUsers = usersFunc();
+        // console.log(postz);;
+        const response =  finalUsers && finalUsers.map(finalUser => {
+          let showUser = {
+            employee: finalUser, 
+            request: {
+              type: 'GET',
+              url: `http://${req.headers.host}/api/employees/${finalUser._id}`,
+              viewByStatus: `http://${req.headers.host}/api/employees?role=${finalUser.role}`,
+              viewByCategory: `http://${req.headers.host}/api/employees?category=${finalUser.category}`
+            }
+          };
+          return showUser;
+        });
+        
+        res.status(200).json({
+          count: finalUsers.length,
+          employees:  response
+        });
+
+    }
+    catch(err){
+      console.log(err);
+      res.status(500).json({error: err});
+    }
+  };
+
 
   async   function getEmployeeById(req, res, next){
     const id = req.params.employeeId;
@@ -217,6 +273,7 @@ function employeesController(Employee) {
 
   return {
     getEmployees,
+    getUsers,
     getEmployeeById,
     updateEmployee,
     deleteEmployee
