@@ -22,6 +22,28 @@ const { check, validationResult } = require("express-validator");
       .withMessage("invalid email address")
       .normalizeEmail(),
 
+    check("phone_number")
+      .optional()
+      .isInt()
+      .withMessage("phone number should be numbers only")
+      .isLength({ min: 7 })
+      .withMessage("the phone number cannot be less than 7 characters")
+      .trim(),
+
+      check("role")
+      .exists()
+      .withMessage("role is required")
+      .isIn(['superadmin','admin','employee', 'driver'])
+      .withMessage("this role does not exist")
+      .trim(),
+
+      check("category")
+      .exists()
+      .withMessage("category is required")
+      .isIn(['senior executive','executive','senior staff','staff'])
+      .withMessage("this category does not exist")
+      .trim(),
+
     
 
     // check("password")

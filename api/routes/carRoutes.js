@@ -7,7 +7,8 @@ const Car = require('../models/carModel');
 // const User = require('../models/userModel');
 // const authWare = require('../middlewares/auth');
 // const adminWare = require('../middlewares/adminAuth');
-// const postWare = require('../middlewares/self-postAuth');
+const carValidation = require('../middlewares/validateCar');
+const validationErrors = require('../middlewares/validationErrors');
 // const carsController = require('../controllers/carsController')(Post, Category, User);
 const carsController = require('../controllers/carsController')(Car);
 const router = express.Router();
@@ -46,7 +47,7 @@ upload.any();
 
 
 router.get('/', carsController.get);
-router.post('/', upload.single('display_picture'), carsController.post);
+router.post('/', [carValidation], validationErrors, upload.single('display_picture'), carsController.post);
 router.get('/:carId', carsController.getCarById);
 router.post('/:carId', upload.single('display_picture'), carsController.updateCar);
 router.delete('/:carId', carsController.deleteCar);
