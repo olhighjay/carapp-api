@@ -14,6 +14,7 @@ const employeeRouter = require('./api/routes/employeeRoutes');
 const driverRouter = require('./api/routes/driverRoutes');
 const adminRouter = require('./api/routes/adminRoutes');
 const roleRouter = require('./api/routes/roleRoutes');
+const tripRouter = require('./api/routes/tripRoutes');
 
 // var expressBusboy = require('express-busboy');
 // expressBusboy.extend(app);
@@ -45,6 +46,7 @@ app.use('/api/employees', employeeRouter);
 app.use('/api/drivers', driverRouter);
 app.use('/api/admins', adminRouter);
 app.use('/api/roles', roleRouter);
+app.use('/api/trips', tripRouter);
 
 
 app.use((req, res, next) => {
@@ -72,6 +74,7 @@ const port = process.env.PORT || 3000;
 // });
 
 app.server = app.listen(port, () => {
+  console.log(new Date(Date.now()).toLocaleTimeString());
   console.log(chalk.blue('Running on port ' + port));
   console.log(app.settings.env);
   // console.log(JSON.stringify(process.env.NODE_ENV));

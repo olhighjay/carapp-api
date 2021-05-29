@@ -33,13 +33,18 @@ const employeeModel = new Schema(
     role: {
       type: String,
       required: true,
-      enum : ['superadmin','admin','employee', 'driver'],
+      enum : ['superadmin','admin','employee', 'head of driver', 'driver'],
     },
     category: {
       type: String,
-      enum : ['senior executive','executive','senior staff','staff'],
+      enum : ['executive','senior staff','staff'],
       default: 'staff',
       required: true,
+    },
+    status: {
+      type: String,
+      enum : ['available','unavailable','booked'],
+      default: 'available'
     },
     display_picture: {type: String}
   }, {timestamps: true, 

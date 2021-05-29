@@ -11,12 +11,10 @@ const carModel = new Schema(
       unique: true,
     },
     brand:  {
-      type: String,
-      required: true
+      type: String
     },
     model:  {
-      type: String,
-      required: true
+      type: String
     },
     color:  {
       type: String,
