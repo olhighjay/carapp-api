@@ -116,9 +116,38 @@ function tripsController(Trip, Car, Employee) {
       } else {
         trip.employee = req.userData.userId
       }
+      // Who created the trip
       trip.creator = req.userData.userId;
 
       const employee = await Employee.findById(trip.employee);
+      if(req.body.driver) {
+        var drivva = req.body.driver;
+        var drivvaTrips = await Trip.find({driver: drivva, status: 'booked'});
+        // Get the booked trips that are clashing with the current trip
+        var clashingDrivvaTimeTrips = drivvaTrips.filter(drivvaTrip => {
+          if(trip.start_time <= drivvaTrip.start_time && trip.end_time > drivvaTrip.start_time_grace){
+            return true
+          }
+          if(trip.start_time >= drivvaTrip.start_time && trip.start_time < drivvaTrip.end_time_grace){
+            return true
+          }   
+        })
+      }
+
+      if(req.body.car) {
+        var carr = req.body.car;
+        var carrTrips = await Trip.find({driver: carr, status: 'booked'});
+        // Get the booked trips that are clashing with the current trip
+        var clashingCarrTimeTrips = carrTrips.filter(carrTrip => {
+          if(trip.start_time <= carrTrip.start_time && trip.end_time > carrTrip.start_time_grace){
+            return true
+          }
+          if(trip.start_time >= carrTrip.start_time && trip.start_time < carrTrip.end_time_grace){
+            return true
+          }   
+        })
+      }
+
       const employeeDrivers = await Employee.find({role: 'driver' , category: employee.category, status: ['available','booked']});
       const availableDrivers = await Employee.find({role: 'driver', category: employee.category, status: ['available']});
       const bookedDrivers = await Employee.find({role: 'driver', category: employee.category, status: 'booked'});
@@ -127,8 +156,101 @@ function tripsController(Trip, Car, Employee) {
       const availableCars = await Car.find({ category: employee.category, status: ['available']});
       const bookedCars = await Car.find({ category: employee.category, status: 'booked'});
       
+      // Function to differentiate between 2 arrays
+      function arr_diff (a1, a2) {
+
+        var a = [], diff = [];
+    
+        for (var i = 0; i < a1.length; i++) {
+            a[a1[i]] = true;
+        }
+    
+        for (var i = 0; i < a2.length; i++) {
+            if (a[a2[i]]) {
+                delete a[a2[i]];
+            } else {
+                a[a2[i]] = true;
+            }
+        }
+    
+        for (var k in a) {
+            diff.push(k);
+        }
+    
+        return diff;
+      }
+
+      // Function to count number of times each element of an array occurs
+      function countArrayElements(arr) {
+        var count = {};
+        for (var i = 0; i < arr.length; i++) {
+          var num = arr[i];
+          count[num] = count[num] ? count[num] + 1 : 1;
+        };
+        return count;
+      }
+
+      // FInd the minimum occuring element in an array
+      function findMin(objt) {
+         // results are the ids of the drivers without registering an id more than once despite the driver having multiple booked trip
+        var results = Object.keys(objt).map(i => objt[i])
+         // min is the number of time the lowest occuring driver appeared
+        var min = Math.min(...results);
+         // Get the id(s) of the driver(s) that has gone on the lowest number of trips
+        var vcantObjs = Object.keys(objt).filter(function(key) {
+          if (objt[key] == min) {
+            return true;
+          }
+        });
+
+        return vcantObjs;
+      }
+
+      //todayrips are all tthe today's booked trips created in the last 3 days
+      var todayTrips = await Trip.find({
+        status: "booked", 
+        createdAt: { 
+          $gte: new Date(new Date().getTime() - 1000 * 3600 * 24 * 3),
+          $lt: new Date()
+        },
+        }).sort({createdAt : 1   // ascending order
+      }). exec();
+
+      // ids of the drivers of todayTrips
+      var todayDrivaIdz = todayTrips.map(todayTrip => {
+        return todayTrip.driver;
+      })
+
       
-      function ifBookedDriverOrCar(obj,objTrips) {
+      var countor = {};
+      for (var i = 0; i < todayDrivaIdz.length; i++) {
+        var num = todayDrivaIdz[i];
+        countor[num] = countor[num] ? countor[num] + 1 : 1;
+      };
+
+      // Ids of the drivers of trips created in the last 3 days without counting recurence
+      var todayDrivaIds = Object.keys(countor);
+      console.log(todayDrivaIds);
+
+
+        
+      // ids of the cars of todayTrips
+      var todayCarIdz = todayTrips.map(todayTrip => {
+        return todayTrip.car;
+      })
+      var carCountor = countArrayElements(todayCarIdz);
+      // for (var i = 0; i < todayCarIdz.length; i++) {
+      //   var num = todayCarIdz[i];
+      //   carCountor[num] = carCountor[num] ? carCountor[num] + 1 : 1;
+      // };
+
+      // Ids of the drivers of trips created in the last 3 days without counting recurence
+      var todayCarIds = Object.keys(carCountor);
+      console.log(todayCarIds);
+      
+
+      
+      function ifBookedDriverOrCar(obj,objTrips, todayObjIds, counts, objsIds) {
           // Get the booked trips that are not clashing with the current trip
         var freeTimeTrips = objTrips.filter(objTrip => {
         if(trip.start_time < objTrip.start_time && trip.end_time < objTrip.start_time_grace){
@@ -158,7 +280,7 @@ function tripsController(Trip, Car, Employee) {
         if(obj == "driver"){
           var vacObjs = freeTimeTrips.map(freeTimeTrip => {
             return freeTimeTrip.driver;
-          })
+          }) 
         } else if(obj == "car") {
           var vacObjs = freeTimeTrips.map(freeTimeTrip => {
             return freeTimeTrip.car;
@@ -167,47 +289,103 @@ function tripsController(Trip, Car, Employee) {
 
         // Get the drivers(id) of the booked trips that are clashing
         if(obj == "driver"){
-          var clashObjs = clashingTimeTrips.map(clashingTimeTrip => {
+          var clashObjz = clashingTimeTrips.map(clashingTimeTrip => {
           return clashingTimeTrip.driver;
         })
         } else if(obj == "car") {
-          var clashObjs = clashingTimeTrips.map(clashingTimeTrip => {
+          var clashObjz = clashingTimeTrips.map(clashingTimeTrip => {
             return clashingTimeTrip.car;
           })
         }
-
-         // Get the id of the drivers that are not clashing 
-         if(clashObjs && clashObjs.length > 0){
-          var vactObjs = clashObjs.filter(clashObj => {
-            return vacObjs.includes(clashObj);
-          });
-         } else {
-          var vactObjs = vacObjs
-         }
-         
         // console.log(vacObjs);
-        // console.log(clashObjs);
-        // console.log(vactObjs);
+        var clashObjza = countArrayElements(clashObjz);
+        var clashObjs = Object.keys(clashObjza);
+
+         // Get the id of the drivers that are not clashing and that are not among the drivers that are clashing
+         //It's possible that a driver has trips that are not clashing witrh the current trip time and still have some other 
+         //trips that are clashing with the currernt trip. So we are getting drivers that are not clashing in any of their trips
+        //  console.log("Ade n de");
+        //  console.log(clashObjs);
+        //  console.log(todayObjIds);
+         // if all the drivers have embarked on atleast a trip in the last 3 days
+        if(todayObjIds && objsIds && todayObjIds.length >= objsIds.length){
+          // If there is any of the drivers that are clashing with the current trip time
+          if(clashObjs && clashObjs.length > 0){
+            console.log("testing microphone");
+            // vactObjs are the drivers that have embarked on trips in the last 3 days that are not clashing
+            var vactObjs = arr_diff(clashObjs, todayObjIds);
+          } else {
+            console.log(" microphone");
+            // vactObjs are the drivers with the least number of trips in the last 3 days
+            var vactObjs = findMin(counts);
+          }
+        } // if there are drivers that have embarked on trips in the last 3 days but not up to the number of the total number of available drivers
+        else if (todayObjIds && objsIds && todayObjIds.length > 0 && todayObjIds.length < objsIds.length ) {
+          vacas = arr_diff(todayObjIds, objsIds);
+          // If there is any of the drivers that are clashing with the current trip time
+          if(clashObjs && clashObjs.length > 0){
+            console.log("testing microphone again");
+            // drivers that are not clashing
+            var unclashed = arr_diff(clashObjs, objsIds);
+            console.log(unclashed);
+            // drivers that are not clashing and have not embarked on any trip in the last 3 days
+            // var unToday = arr_diff(todayObjIds, unclashed);
+            var unToday = unclashed.filter(unclash => {
+              return !todayObjIds.includes(unclash);
+            });
+            console.log("unToday");
+            console.log(unToday);
+            // If we have such drivers like untoday drivers, then they should be our drivers
+            if(unToday.length > 0) {
+              vactObjs = unToday;
+            } // else it should be the drivers that are not clashing whether they have embarked on any trip in the last 3 days or not
+            else {
+              vactObjs = unclashed;
+            }
+          } // If no driver is clashing, our drivers shoukd be drivers that have not embarked on any trip in the last 3 days
+          else {
+            console.log(" microphone again o");
+            vacas = arr_diff(todayObjIds, objsIds);
+            var vactObjs = vacas;
+          }
+        } // If no driver has embarked on any trip in the last 3 days but there are drivers that are not clashing
+        else if(vacObjs && vacObjs.length > 0){
+          // if any of them is clashing, get the booked drivers that are not clashing. Those are our drivers
+          if(clashObjs && clashObjs.length > 0){
+            var vactObjs = clashObjs.filter(clashObj => {
+              return vacObjs.includes(clashObj);
+            });
+          } // else, our drivers are the booked drivers that not clashing at all whether they have embarked ontrip in the last 3 days or not
+          else {
+            var vactObjs = vacObjs
+          }
+        } else {
+          var vactObjs = vacObjs
+        }
+
+        console.log(vactObjs);
+        console.log("soro");
+        
 
         if(vactObjs && vactObjs.length < 1) {
           throw new Error('All the ' + obj + 's are currently booked for this time, please pick a new time or date to be able to use the ' + obj + 's');
         }
-          // Get the drivers(id) of the booked trip neglecting multiple occurence
-        var counts = {};
-        for (var i = 0; i < vactObjs.length; i++) {
-          var num = vacObjs[i];
-          counts[num] = counts[num] ? counts[num] + 1 : 1;
-        }
+          // Get the vactObjs (drivers(id) of the booked trip that are not clashing at all) neglecting multiple occurence
+        var counts = countArrayElements(vactObjs);
           // results are the ids of the drivers without registering an id more than once despite the driver having multiple booked trip
-        var results = Object.keys(counts).map(i => counts[i])
-          // min is the number of time the lowest occuring driver appeared
-        var min = Math.min(...results);
-          // Get the id(s) of the driver(s) with min 
-        var vacantObjs = Object.keys(counts).filter(function(key) {
-          if (counts[key] == min) {
-            return true;
-          }
-        });
+        // var results = Object.keys(counts).map(i => counts[i])
+        //   // min is the number of time the lowest occuring driver appeared
+        // var min = Math.min(...results);
+        // min is the number of time the lowest occuring driver appeared
+        // var vacantObjs = findMin(counts);
+        //   // Get the id(s) of the driver(s) that has gone on the lowest number of trips
+        // var vacantObjs = Object.keys(counts).filter(function(key) {
+        //   if (counts[key] == min) {
+        //     return true;
+        //   }
+        // });
+        var vacantObjs = findMin(counts);
+        // console.log(counts);
 
         return vacantObjs;
       }
@@ -235,8 +413,9 @@ function tripsController(Trip, Car, Employee) {
       }
       
        //  DO MIDDLEWARE TO ALLOW ONLY ADMIN AND SOME CATEGORIES TO CHOOSE THEIR DRIVER AND CAR
-      if(req.driver) {
-        trip.driver = req.driver
+       // If the driver was chosen and he does not have any clashing trip. Then the driver sould be the driver for the trip
+      if(clashingDrivvaTimeTrips && clashingDrivvaTimeTrips.length < 1) {
+        var driver = req.body.driver
       } else {
         if(employeeDrivers.length > 0 ) {
             // If the employee has at least a driver in their category that is not unavailble
@@ -265,6 +444,7 @@ function tripsController(Trip, Car, Employee) {
             createdAt : 1   // ascending order
           }). exec();
 
+
           // The last few trips the driver embarkend on that one of them did is yet to embark on 
           const driverLastTrips = previousTrips.slice(0, drivers.length - 1);
 
@@ -274,7 +454,7 @@ function tripsController(Trip, Car, Employee) {
             // We pick first in the drivers that have smallest booked trip(s) that their time are not clashing with the current trip time
           if(bookedDrivers == drivers) {
             console.log("We are working on the booked drivers");
-            vacantDrivers = ifBookedDriverOrCar("driver", drivaTrips)
+            vacantDrivers = ifBookedDriverOrCar("driver", drivaTrips, todayDrivaIds, countor, driversIds)
 
           }
               // And all or some of them are free, not booked
@@ -312,11 +492,11 @@ function tripsController(Trip, Car, Employee) {
           console.log("No driver available");
           throw new Error("No driver available at the moment")
         }
-        trip.driver = driver;
       }
 
-      if(req.car) {
-        trip.car = req.car
+      // If the car was chosen and it does not have any clashing trip. Then the car sould be the car for the trip
+      if(clashingCarrTimeTrips && clashingCarrTimeTrips.length < 1) {
+        var car = req.body.car;
       } else {
         if(employeeCars.length > 0 ) {
           // If the employee has at least a driver in their category that is not unavailble
@@ -345,6 +525,10 @@ function tripsController(Trip, Car, Employee) {
             createdAt : 1   // ascending order
           }). exec();
 
+           var todayDrivaIds = todayTrips.map(todayTrip => {
+            return todayTrip.driver;
+          })
+
           // The last few trips the driver embarkend on that one of them did is yet to embark on 
           const carLastTrips = carPreviousTrips.slice(0, cars.length - 1);
 
@@ -354,7 +538,7 @@ function tripsController(Trip, Car, Employee) {
           // We pick first in the drivers that have smallest booked trip(s) that their time are not clashing with the current trip time
           if(bookedCars == cars) {
             console.log("We are working on the booked cars");
-            vacantCars = ifBookedDriverOrCar("car", carTrips)
+            vacantCars = ifBookedDriverOrCar("car", carTrips, todayCarIds, carCountor, carsIds);
 
           }
               // And all or some of them are free, not booked
@@ -377,18 +561,17 @@ function tripsController(Trip, Car, Employee) {
           console.log("No ar available");
           throw new Error("No car available at the moment")
         }
-        trip.car = car
       }
 
       // If it's the admin that chooses the trip to be emergency, then the trip is confirmed already but if it is 
       // people with other roles, then the trip should not be confirmed until confirmed by the admin
       if(req.userData.role == "superadmin" || req.userData.role == "admin") {
-        if(req.emergency){
+        if(req.body.emergency == "on"){
           trip.emergency = true;
         }
         trip.status = "booked";
       } else {
-        if(req.emergency) {
+        if(req.body.emergency == "on") {
           trip.emergency = true;
           trip.confirmed = false;
           trip.status = "pending";
@@ -397,19 +580,22 @@ function tripsController(Trip, Car, Employee) {
         }
       }
 
+      // Save driver and save car
+      trip.driver = driver;
+      trip.car = car
       //Update car and driver status
-      // var updriver = await Employee.findById(driver);
-      // updriver.status ='booked';
-      // updriver.save();
-      // var upcar = await Car.findById(car);
-      // upcar.status ='booked';
+      var updriver = await Employee.findById(driver);
+      updriver.status ='booked';
+      updriver.save();
+      var upcar = await Car.findById(car);
+      upcar.status ='booked';
       
-      // upcar.save();
+      upcar.save();
 
-      // //save trip
-      // trip.save();
-        // console.log(req.userData);
+      //save trip
+      trip.save();
 
+        console.log(new Date());
       res.status(201).json({
         message: 'Trip created successfully',
         trip,
