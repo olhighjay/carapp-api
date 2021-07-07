@@ -16,71 +16,120 @@ function toTime(selectedTime, additionalTime){
 }
 
 function tripsController(Trip, Car, Employee) {
-    // async function get(req, res, next){
-    //   try{
-    //     const cars = await Car.find().sort({
-    //       createdAt : -1   //descending order
-    //   }).
-    //   exec();
-    //    // console.log(req.query);
-    //   if(req.query.condition){
-    //     query.condition = req.query.condition;
-    //   };
-    //   if(req.query.status){
-    //     query.status = req.query.status;
-    //   }
-    //   if(req.query.category){
-    //     query.category = req.query.category;
-    //   }
-    //   let filteredCar = cars && cars.filter(trip => {
-    //      // console.log(post.category["name"]);
-    //     if(trip.condition !== undefined && !req.query.status && !req.query.category){
-    //       return trip.condition === query.condition
-    //     }
-    //     else if(trip.status !== undefined && !req.query.condition && !req.query.category){
-    //       return trip.status === query.status
-    //     }
-    //     else if(trip.category !== undefined && !req.query.condition && !req.query.status){
-    //       return trip.category === query.category
-    //     }
-    //   });
-    //   let finCars;
-    //   const carsFunc = () => {
-    //     if(req.query.condition || req.query.status ||  req.query.category){
-    //       finCars =  filteredCar;
-    //     }
-    //     else{
-    //       finCars = cars;
-    //     }
-    //     return finCars
-    //   }
-    //   const finalCars = carsFunc();
-    //    // console.log(postz);;
-    //   const response =  finalCars && finalCars.map(finalCar => {
-    //     let showCar = {
-    //       trip: finalCar, 
-    //       request: {
-    //         type: 'GET',
-    //         url: `http:  //${req.headers.host}/api/cars/${finalCar._id}`,
-    //         viewByStatus: `http: //${req.headers.host}/api/cars?status=${finalCar.status}`,
-    //         viewByCondition: `http:  //${req.headers.host}/api/cars?condition=${finalCar.condition}`,
-    //         viewByCategory: `http: //${req.headers.host}/api/cars?category=${finalCar.category}`
-    //       }
-    //     };
-    //     return showCar;
-    //   })
-    //    // };
-    //   res.status(200).json({
-    //     count: finalCars.length,
-    //     Cars: response
-    //   });
-    // }
+  async function get(req, res, next){
+    try{
+        const trips = await Trip.find().sort({
+          createdAt : -1   //descending order
+      }).
+      exec();
+      // console.log(req.query.confirmed);
+      
+      if(req.query.emergency){
+        query.emergency = req.query.emergency;
+      };
+      if(req.query.confirmed){
+        query.confirmed = req.query.confirmed;
+      };
+      if(req.query.status){
+        query.status = req.query.status;
+      };
+      if(req.query.accident){
+        query.accident = req.query.accident;
+      };
 
-    // catch(err){
-    //   console.log(err);
-    //   res.status(500).json({error: err.message});
-    // }
-    // }
+      // console.log(query.emergency);
+      // console.log(query.accident);
+
+      // FILTER TRIPS BY EMERGENCY, CONFIRMED OR ACCIDENT
+      let filteredTrips = trips && trips.filter(trip => {
+        if( query.emergency != undefined && (query.emergency == 0 || query.emergency ==1)){
+          return trip.emergency == query.emergency;
+        }else if( query.confirmed != undefined && (query.confirmed == 0 || query.confirmed ==1)){
+          return trip.confirmed == query.confirmed;
+        }else if( query.status != undefined){
+          return trip.status == query.status;
+        }else if( query.accident != undefined && (query.accident == 0 || query.accident ==1)){
+          return trip.accident == query.accident;
+        } else{
+          return true;
+        }
+      });
+      
+      
+      if(req.query.employee){
+        query.employee = req.query.employee;
+      };
+      if(req.query.driver){
+        query.driver = req.query.driver;
+      };
+      if(req.query.car){
+        query.car = req.query.car;
+      };
+      
+      // FILTER THE FILTERED TRIPS BY USER, DRIVER OR VEHICLE
+      let modFilteredTrips = filteredTrips && filteredTrips.filter(modTrip => {
+        if( query.employee != undefined ){
+          return modTrip.employee == query.employee;
+        }else if( query.driver != undefined ){
+          return modTrip.driver == query.driver;
+        }else if( query.car != undefined ){
+          return modTrip.car == query.car;
+        } else{
+          return true;
+        }
+      });
+
+      if(req.query.year){
+        query.year = req.query.year;
+      };if(req.query.month){
+        query.month = req.query.month;
+      };if(req.query.day){
+        query.day = req.query.day;
+      };
+
+      console.log(req.query.month);
+      
+      // FILTER THE FILTERED BY DATE
+      let datedFilteredTrips = modFilteredTrips && modFilteredTrips.filter(datedTrip => {
+        const createdTime = moment(datedTrip.createdAt);
+        if( query.year != undefined){
+          return createdTime.format('YYYY') == query.year;
+        }else if( query.month != undefined ){
+          return createdTime.format('YYYY-MM') == query.month;
+        }else if( query.day != undefined ){
+          return createdTime.format('YYYY-MM-DD-MM') == query.day;
+        } else{
+          return true;
+        }
+      });
+      
+      const finalTrips = datedFilteredTrips;
+       // console.log(postz);;
+      const response =  finalTrips && finalTrips.map(finalTrip => {
+        let showTrips = {
+          trip: finalTrips, 
+          request: {
+            type: 'GET',
+            url: `http://${req.headers.host}/api/trips/${finalTrip._id}`,
+            viewByStatus: `http://${req.headers.host}/api/trips?status=${finalTrip.status}`,
+            ViewEmergencyTrips: `http://${req.headers.host}/trips?emergency=true`,
+            viewTripsByCar: `http://${req.headers.host}/trips/car=${finalTrip.car}`
+          }
+        };
+        return showTrips;
+      })
+       // };
+      res.status(200).json({
+        count: finalTrips.length,
+        Trips: response
+      });
+    }
+    catch(err){
+      console.log(err);
+      res.status(500).json({error: err.message});
+    }
+  }
+
   async function post(req, res, next){
       /* The front end dev should show a list of drivers and cars that are 
       ** either available or booked but trips time not clashing
@@ -198,7 +247,7 @@ function tripsController(Trip, Car, Employee) {
         var min = Math.min(...results);
          // Get the id(s) of the driver(s) that has gone on the lowest number of trips
         var vcantObjs = Object.keys(objt).filter(function(key) {
-          if (objt[key] == min) {
+          if (objt[key] === min) {
             return true;
           }
         });
@@ -206,7 +255,7 @@ function tripsController(Trip, Car, Employee) {
         return vcantObjs;
       }
 
-      //todayrips are all tthe today's booked trips created in the last 3 days
+      //todayTrips are all tthe today's booked trips created in the last 3 days
       var todayTrips = await Trip.find({
         status: "booked", 
         createdAt: { 
@@ -277,22 +326,22 @@ function tripsController(Trip, Car, Employee) {
         }
 
           // Get the drivers(id) of the booked trips that are not clashing
-        if(obj == "driver"){
+        if(obj === "driver"){
           var vacObjs = freeTimeTrips.map(freeTimeTrip => {
             return freeTimeTrip.driver;
           }) 
-        } else if(obj == "car") {
+        } else if(obj === "car") {
           var vacObjs = freeTimeTrips.map(freeTimeTrip => {
             return freeTimeTrip.car;
           })
         }
 
         // Get the drivers(id) of the booked trips that are clashing
-        if(obj == "driver"){
+        if(obj === "driver"){
           var clashObjz = clashingTimeTrips.map(clashingTimeTrip => {
           return clashingTimeTrip.driver;
         })
-        } else if(obj == "car") {
+        } else if(obj === "car") {
           var clashObjz = clashingTimeTrips.map(clashingTimeTrip => {
             return clashingTimeTrip.car;
           })
@@ -380,7 +429,7 @@ function tripsController(Trip, Car, Employee) {
         // var vacantObjs = findMin(counts);
         //   // Get the id(s) of the driver(s) that has gone on the lowest number of trips
         // var vacantObjs = Object.keys(counts).filter(function(key) {
-        //   if (counts[key] == min) {
+        //   if (counts[key] === min) {
         //     return true;
         //   }
         // });
@@ -452,13 +501,13 @@ function tripsController(Trip, Car, Employee) {
           var vacantDrivers;
             // If all the drivers are booked
             // We pick first in the drivers that have smallest booked trip(s) that their time are not clashing with the current trip time
-          if(bookedDrivers == drivers) {
+          if(bookedDrivers === drivers) {
             console.log("We are working on the booked drivers");
             vacantDrivers = ifBookedDriverOrCar("driver", drivaTrips, todayDrivaIds, countor, driversIds)
 
           }
               // And all or some of them are free, not booked
-          else if(availableDrivers == drivers) {
+          else if(availableDrivers === drivers) {
               // If the drivers have embarked on more than one trip
               // We need to look for the driver that has gone for less trips in the last few trips
             if(previousTrips.length > 0) {
@@ -536,13 +585,13 @@ function tripsController(Trip, Car, Employee) {
           var vacantCars;
               // If all the drivers are booked
           // We pick first in the drivers that have smallest booked trip(s) that their time are not clashing with the current trip time
-          if(bookedCars == cars) {
+          if(bookedCars === cars) {
             console.log("We are working on the booked cars");
             vacantCars = ifBookedDriverOrCar("car", carTrips, todayCarIds, carCountor, carsIds);
 
           }
               // And all or some of them are free, not booked
-          else if(availableCars == cars) {
+          else if(availableCars === cars) {
               // If the drivers have embarked on more than one trip
               // We need to look for the driver that has gone for less trips in the last few trips
             if(carPreviousTrips.length > 0) {
@@ -565,13 +614,13 @@ function tripsController(Trip, Car, Employee) {
 
       // If it's the admin that chooses the trip to be emergency, then the trip is confirmed already but if it is 
       // people with other roles, then the trip should not be confirmed until confirmed by the admin
-      if(req.userData.role == "superadmin" || req.userData.role == "admin") {
-        if(req.body.emergency == "on"){
+      if(req.userData.role === "superadmin" || req.userData.role === "admin") {
+        if(req.body.emergency === "on"){
           trip.emergency = true;
         }
         trip.status = "booked";
       } else {
-        if(req.body.emergency == "on") {
+        if(req.body.emergency === "on") {
           trip.emergency = true;
           trip.confirmed = false;
           trip.status = "pending";
@@ -751,7 +800,7 @@ function tripsController(Trip, Car, Employee) {
 
 
   return {
-      // get,
+    get,
     post,
       // getCarById,
       // updateCar,

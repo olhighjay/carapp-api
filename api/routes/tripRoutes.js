@@ -48,7 +48,7 @@ const upload = multer({
 upload.any();
 
 
-// router.get('/', carsController.get);
+router.get('/', tripsController.get);
 router.post('/', authWare, tripsController.post);
 // router.get('/:carId', carsController.getCarById);
 // router.post('/:carId', upload.single('display_picture'), carsController.updateCar);
