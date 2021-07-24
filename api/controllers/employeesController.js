@@ -11,52 +11,32 @@ function employeesController(Employee) {
 
   async function getEmployees(req, res, next){
     try{
-        const employees = await Employee.find({role: 'employee'});
-        
-        if(req.query.role){
-          query.role = req.query.role;
+      const filter = {};
+      if(req.query.category){
+        filter.category = req.query.category;
+      };
+      filter.role = 'employee';
+      filter.deleted_at = null;
+      const employees = await Employee.find(filter);
+      
+      // console.log(postz);;
+      const response =  employees && employees.map(finalEmployee => {
+        let showEmployee = {
+          employee: finalEmployee, 
+          request: {
+            type: 'GET',
+            url: `http://${req.headers.host}/api/employees/${finalEmployee._id}`,
+            viewByStatus: `http://${req.headers.host}/api/employees?role=${finalEmployee.role}`,
+            viewByCategory: `http://${req.headers.host}/api/employees?category=${finalEmployee.category}`
+          }
         };
-        if(req.query.category){
-          query.category = req.query.category;
-        }
-        let filteredEmployees = employees && employees.filter(employee => {
-          // console.log(post.category["name"]);
-          if(employee.role !== undefined && !req.query.category){
-            return employee.role === query.role
-          }
-          else if(employee.category !== undefined && !req.query.role){
-            return employee.category === query.category
-          }
-        });
-        let finEmployees;
-        const employeesFunc = () => {
-          if(req.query.role ||  req.query.category){
-            finEmployees =  filteredEmployees;
-          }
-          else{
-            finEmployees = employees;
-          }
-          return finEmployees
-        }
-        const finalEmployees = employeesFunc();
-        // console.log(postz);;
-        const response =  finalEmployees && finalEmployees.map(finalEmployee => {
-          let showEmployee = {
-            employee: finalEmployee, 
-            request: {
-              type: 'GET',
-              url: `http://${req.headers.host}/api/employees/${finalEmployee._id}`,
-              viewByStatus: `http://${req.headers.host}/api/employees?role=${finalEmployee.role}`,
-              viewByCategory: `http://${req.headers.host}/api/employees?category=${finalEmployee.category}`
-            }
-          };
-          return showEmployee;
-        });
-        
-        res.status(200).json({
-          count: finalEmployees.length,
-          employees:  response
-        });
+        return showEmployee;
+      });
+      
+      res.status(200).json({
+        count: employees.length,
+        employees:  response
+      });
 
     }
     catch(err){
@@ -125,8 +105,8 @@ function employeesController(Employee) {
   async   function getEmployeeById(req, res, next){
     const id = req.params.employeeId;
     try{
-     
-      const employee = await Employee.find({role: 'employee', _id:id});
+      const check = {_id:id, deleted_at:null, role: 'employee'};
+      const employee = await Employee.find(check);
       // .select("product quantity _id")
       // const user = populate('user');
       // const posts = await Post.find({author: user._id}).select("title")

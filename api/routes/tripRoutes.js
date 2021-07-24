@@ -50,8 +50,8 @@ upload.any();
 
 router.get('/', tripsController.get);
 router.post('/', authWare, tripsController.post);
-// router.get('/:carId', carsController.getCarById);
-// router.post('/:carId', upload.single('display_picture'), carsController.updateCar);
+router.get('/:tripId', tripsController.getTripById);
+router.post('/:tripId', tripsController.updateTrip);
 // router.delete('/:carId', carsController.deleteCar);
 
 

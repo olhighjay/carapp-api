@@ -11,46 +11,34 @@ function driversController(Driver) {
 
   async function getDrivers(req, res, next){
     try{
-        const drivers = await Driver.find({role: 'driver'});
-        // console.log(drivers);
-        if(req.query.category){
-          query.category = req.query.category;
-        }
-        let filtereddrivers = drivers && drivers.filter(driver => {
-          // console.log(post.category["name"]);
-          if(driver.category !== undefined){
-            return driver.category === query.category
+      const filter = {};
+      if(req.query.category){
+        filter.category = req.query.category;
+      };
+      if(req.query.status){
+        filter.status = req.query.status;
+      };
+      filter.role = 'driver';
+      filter.deleted_at = null;
+      const drivers = await Driver.find(filter);
+      
+      const response =  drivers && drivers.map(finaldriver => {
+        let showdriver = {
+          driver: finaldriver, 
+          request: {
+            type: 'GET',
+            url: `http://${req.headers.host}/api/drivers/${finaldriver._id}`,
+            viewByStatus: `http://${req.headers.host}/api/drivers?role=${finaldriver.role}`,
+            viewByCategory: `http://${req.headers.host}/api/drivers?category=${finaldriver.category}`
           }
-        });
-        let findrivers;
-        const driversFunc = () => {
-          if(req.query.category){
-            findrivers =  filtereddrivers;
-          }
-          else{
-            findrivers = drivers;
-          }
-          return findrivers
-        }
-        const finaldrivers = driversFunc();
-        // console.log(postz);;
-        const response =  finaldrivers && finaldrivers.map(finaldriver => {
-          let showdriver = {
-            driver: finaldriver, 
-            request: {
-              type: 'GET',
-              url: `http://${req.headers.host}/api/drivers/${finaldriver._id}`,
-              viewByStatus: `http://${req.headers.host}/api/drivers?role=${finaldriver.role}`,
-              viewByCategory: `http://${req.headers.host}/api/drivers?category=${finaldriver.category}`
-            }
-          };
-          return showdriver;
-        });
-        
-        res.status(200).json({
-          count: finaldrivers.length,
-          drivers:  response
-        });
+        };
+        return showdriver;
+      });
+      
+      res.status(200).json({
+        count: drivers.length,
+        drivers:  response
+      });
 
     }
     catch(err){
@@ -63,8 +51,9 @@ function driversController(Driver) {
   async   function getDriverById(req, res, next){
     const id = req.params.driverId;
     try{
+      const check = {_id:id, deleted_at:null, role: 'driver'};
      
-      const driver = await Driver.find({role: 'driver', _id:id});
+      const driver = await Driver.find(check);
       // .select("product quantity _id")
       // const user = populate('user');
       // const posts = await Post.find({author: user._id}).select("title")

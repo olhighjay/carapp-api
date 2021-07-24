@@ -18,109 +18,55 @@ function toTime(selectedTime, additionalTime){
 function tripsController(Trip, Car, Employee) {
   async function get(req, res, next){
     try{
-        const trips = await Trip.find().sort({
+      
+      const filter = {};
+       if(req.query.emergency){
+        filter.emergency = req.query.emergency;
+      };
+      if(req.query.confirmed){
+        filter.confirmed = req.query.confirmed;
+      };
+      if(req.query.status){
+        filter.status = req.query.status;
+      };
+      if(req.query.accident){
+        filter.accident = req.query.accident;
+      };
+      if(req.query.employee){
+        filter.employee = req.query.employee;
+      };
+      if(req.query.driver){
+        filter.driver = req.query.driver;
+      };
+      if(req.query.car){
+        filter.car = req.query.car;
+      };
+      console.log(filter);
+      
+        const trips = await Trip.find(filter).populate(["car", "driver", "employee", "creator"]).sort({
           createdAt : -1   //descending order
       }).
       exec();
-      // console.log(req.query.confirmed);
-      
-      if(req.query.emergency){
-        query.emergency = req.query.emergency;
-      };
-      if(req.query.confirmed){
-        query.confirmed = req.query.confirmed;
-      };
-      if(req.query.status){
-        query.status = req.query.status;
-      };
-      if(req.query.accident){
-        query.accident = req.query.accident;
-      };
-
-      // console.log(query.emergency);
-      // console.log(query.accident);
-
-      // FILTER TRIPS BY EMERGENCY, CONFIRMED OR ACCIDENT
-      let filteredTrips = trips && trips.filter(trip => {
-        if( query.emergency != undefined && (query.emergency == 0 || query.emergency ==1)){
-          return trip.emergency == query.emergency;
-        }else if( query.confirmed != undefined && (query.confirmed == 0 || query.confirmed ==1)){
-          return trip.confirmed == query.confirmed;
-        }else if( query.status != undefined){
-          return trip.status == query.status;
-        }else if( query.accident != undefined && (query.accident == 0 || query.accident ==1)){
-          return trip.accident == query.accident;
-        } else{
-          return true;
-        }
-      });
       
       
-      if(req.query.employee){
-        query.employee = req.query.employee;
-      };
-      if(req.query.driver){
-        query.driver = req.query.driver;
-      };
-      if(req.query.car){
-        query.car = req.query.car;
-      };
-      
-      // FILTER THE FILTERED TRIPS BY USER, DRIVER OR VEHICLE
-      let modFilteredTrips = filteredTrips && filteredTrips.filter(modTrip => {
-        if( query.employee != undefined ){
-          return modTrip.employee == query.employee;
-        }else if( query.driver != undefined ){
-          return modTrip.driver == query.driver;
-        }else if( query.car != undefined ){
-          return modTrip.car == query.car;
-        } else{
-          return true;
-        }
-      });
-
-      if(req.query.year){
-        query.year = req.query.year;
-      };if(req.query.month){
-        query.month = req.query.month;
-      };if(req.query.day){
-        query.day = req.query.day;
-      };
-
-      console.log(req.query.month);
-      
-      // FILTER THE FILTERED BY DATE
-      let datedFilteredTrips = modFilteredTrips && modFilteredTrips.filter(datedTrip => {
-        const createdTime = moment(datedTrip.createdAt);
-        if( query.year != undefined){
-          return createdTime.format('YYYY') == query.year;
-        }else if( query.month != undefined ){
-          return createdTime.format('YYYY-MM') == query.month;
-        }else if( query.day != undefined ){
-          return createdTime.format('YYYY-MM-DD-MM') == query.day;
-        } else{
-          return true;
-        }
-      });
-      
-      const finalTrips = datedFilteredTrips;
-       // console.log(postz);;
-      const response =  finalTrips && finalTrips.map(finalTrip => {
+      const response =  trips && trips.map(trip => {
         let showTrips = {
-          trip: finalTrips, 
+          trip: trip, 
           request: {
             type: 'GET',
-            url: `http://${req.headers.host}/api/trips/${finalTrip._id}`,
-            viewByStatus: `http://${req.headers.host}/api/trips?status=${finalTrip.status}`,
+            url: `http://${req.headers.host}/api/trips/${trip._id}`,
+            viewByStatus: `http://${req.headers.host}/api/trips?status=${trip.status}`,
             ViewEmergencyTrips: `http://${req.headers.host}/trips?emergency=true`,
-            viewTripsByCar: `http://${req.headers.host}/trips/car=${finalTrip.car}`
+            viewTripsByCar: `http://${req.headers.host}/trips/car=${trip.car._id}`,
+            viewTripsByEmployee: `http://${req.headers.host}/trips/car=${trip.employee._id}`,
+            // viewTripsByDriver: `http://${req.headers.host}/trips/car=${finalTrip.driver._id}`
           }
         };
         return showTrips;
       })
        // };
       res.status(200).json({
-        count: finalTrips.length,
+        count: trips.length,
         Trips: response
       });
     }
@@ -661,150 +607,82 @@ function tripsController(Trip, Car, Employee) {
     
   }
 
-    // async   function getCarById(req, res, next){
-    //   const id = req.params.carId;
-    //   try{
-     
-    //     const trip = await Car.findById(id);
-    //      // .select("product quantity _id")
-    //      // const user = populate('user');
-    //       if(trip){
-    //         return res.status(200).json({
-    //           Car: trip,
-    //           request: {
-    //             type: 'GET',
-    //             Desrciption: "View all cars",
-    //             url: req.headers.host + '/api/cars/' 
-    //           }
-    //         });
-    //       }else{
-    //         res.status(404).json({
-    //           error: "Car not found"
-    //         });
+  async   function getTripById(req, res, next){
+    const id = req.params.tripId;
+    try{
+    
+      const trip = await Trip.findById(id).populate(["car", "driver", "employee", "creator"]);
+        // .select("product quantity _id")
+        // const user = populate('user');
+        if(trip){
+          return res.status(200).json({
+            Trip: trip,
+            request: {
+              type: 'GET',
+              Desrciption: "View all trips",
+              url: req.headers.host + '/api/trips/' 
+            }
+          });
+        }else{
+          res.status(404).json({
+            error: "Trip not found"
+          });
 
-    //       }
-        
+        }
       
-     
-    //   }
-    //   catch(err){
-    //     console.log(err.message);
-    //     res.status(500).json({
-    //       error: err.stack
-    //     });
-    //   }
-    // };
+    
+    
+    }
+    catch(err){
+      console.log(err.message);
+      res.status(500).json({
+        error: err.stack
+      });
+    }
+  };
 
-    // async function updateCar(req, res, next){
-   
-    //   const id = req.params.carId;
-    //   const update = req.body;
-    //   const keysArray = Object.keys(update);
-   
-    //   try{
-    //     const trip = await Car.findById(id);
-    //      // return res.send(catg);
-    //     if(!trip){
-    //       return res.status(404).json({
-    //         error: "Car not found"
-    //       });
-    //     }
+  async function updateTrip(req, res, next){
+  
+    const id = req.params.tripId;
+    const update = req.body;
+    const keysArray = Object.keys(update);
+  
+    try{
+      const trip = await Trip.findById(id);
+        // return res.send(catg);
+      if(!trip){
+        return res.status(404).json({
+          error: "Car not found"
+        });
+      }
 
-    //     keysArray.forEach(key => {
-    //       trip[key] = update[key];
-    //     })
-    //      //Update cover image
-    //     if(req.file){
-    //        // delete the image from storage
-    //       if(trip.display_picture){
-    //         fs.unlink( trip.display_picture, err => { 
-    //           if(err){
-    //             console.log(err);
-    //           }
-    //         });
-    //       }
-    //        // upload the image from  the database
-    //       trip.display_picture = req.file.path;
-    //     }
+      keysArray.forEach(key => {
+        trip[key] = update[key];
+      })
 
-    //     await trip.save();
-      
-    //     res.status(201).json({
-    //       message: "Car updated successfully",
-    //       trip: trip
-    //     });  
-    //   }
-    //   catch(err){
-    //     console.log(err.message);
-    //     res.status(500).json({
-    //       error: err.message
-    //     });
-    //   }
-    // };
+      await trip.save();
+    
+      res.status(201).json({
+        message: "Trip updated successfully",
+        trip: trip
+      });  
+    }
+    catch(err){
+      console.log(err.message);
+      res.status(500).json({
+        error: err.message
+      });
+    }
+  };
 
-    // async function deleteCar(req, res, next){
-    //   const id = req.params.carId;
-    //   try{
-     
-    //     const trip = await Car.findById(id);
-    //       if(trip){
-    //         if(trip.display_picture){
-    //            // delete the image from storage
-    //           fs.unlink( trip.display_picture, err => { 
-    //             if(err){
-    //               console.log(err);
-    //             }
-    //           });
-    //         }
-    //         await trip.remove();
-    //         res.status(200).json({
-    //           message: "Car deleted successfully",
-    //           request: {
-    //             type: 'POST',
-    //             description: 'Create new post', 
-    //             url: 'http:  //localhost:4000/api/cars/',
-    //             body: {
-    //               title: 'String, required',
-    //               body: 'String, required',
-    //               plate_number: 'String, required',
-    //               brand: 'String',
-    //               model: 'String',
-    //               color: 'String',
-    //               properties: 'String',
-    //               condition: 'String',
-    //               status: 'String',
-    //               category: 'String',
-    //               display_picture: 'image, min-5mb, jpg-jpeg-png',
-    //             }
-    //           }
-    //         });
-    //       }
-    //       else{
-    //         res.status(404).json({
-    //           error: "Post not found"
-    //         });
-
-    //       }
-        
-      
-     
-    //   }
-    //   catch(err){
-    //     console.log(err.message);
-    //     res.status(500).json({
-    //       error: err.stack
-    //     });
-    //   }
-    // }
-
+  // To deleteany trip, just use the update trip endpoint and pass a datetime into the deleted_at column
 
 
   return {
     get,
     post,
-      // getCarById,
-      // updateCar,
-      // deleteCar
+    getTripById,
+    updateTrip,
   };
 };
 

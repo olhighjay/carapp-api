@@ -60,7 +60,7 @@ const tripModel = new Schema(
     },
     status: {
       type: String,
-      enum : ['pending','booked','ongoing','completed'],
+      enum : ['pending','booked','ongoing','completed','cancelled','aborted','expired'],
       default: 'booked'
     },
     car:{
@@ -82,6 +82,11 @@ const tripModel = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       ref: 'Employee'
+    },
+    deleted_at: {
+      type: Date,
+      default: null,
+      required: false,
     },
   }, {timestamps: true, 
     toJSON: { virtuals: true }, 

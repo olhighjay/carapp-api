@@ -46,7 +46,17 @@ const employeeModel = new Schema(
       enum : ['available','unavailable','booked'],
       default: 'available'
     },
-    display_picture: {type: String}
+    car:{
+      type: mongoose.Schema.Types.ObjectId,
+      required: false,
+      ref: 'Car'
+    },
+    display_picture: {type: String},
+    deleted_at: {
+      type: Date,
+      default: null,
+      required: false,
+    },
   }, {timestamps: true, 
     toJSON: { virtuals: true }, 
     toObject: { virtuals: true }

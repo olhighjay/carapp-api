@@ -11,30 +11,18 @@ function adminsController(Admin) {
 
   async function getAdmins(req, res, next){
     try{
-        const admins = await Admin.find({role: 'admin'});
-        // console.log(admins);
-        if(req.query.category){
-          query.category = req.query.category;
-        }
-        let filteredAdmins = admins && admins.filter(admin => {
-          // console.log(post.category["name"]);
-          if(admin.category !== undefined){
-            return admin.category === query.category
-          }
-        });
-        let finAdmins;
-        const adminsFunc = () => {
-          if(req.query.category){
-            finAdmins =  filteredAdmins;
-          }
-          else{
-            finAdmins = admins;
-          }
-          return finAdmins
-        }
-        const finalAdmins = adminsFunc();
+      const filter = {};
+      if(req.query.category){
+        filter.category = req.query.category;
+      };
+      filter.role = 'admin';
+      filter.deleted_at = null;
+      // console.log(filter);
+      
+        const admins = await Admin.find(filter);
+        
         // console.log(postz);;
-        const response =  finalAdmins && finalAdmins.map(finalAdmin => {
+        const response =  admins && admins.map(finalAdmin => {
           let showAdmin = {
             admin: finalAdmin, 
             request: {
@@ -48,7 +36,7 @@ function adminsController(Admin) {
         });
         
         res.status(200).json({
-          count: finalAdmins.length,
+          count: admins.length,
           admins:  response
         });
 
@@ -63,8 +51,9 @@ function adminsController(Admin) {
   async   function getAdminById(req, res, next){
     const id = req.params.adminId;
     try{
+      const check = {_id:id, deleted_at:null, role: 'admin'};
      
-      const admin = await Admin.find({role: 'admin', _id:id});
+      const admin = await Admin.find(check);
     //  console.log(admin);
         if(admin.length > 0){
           res.status(200).json({

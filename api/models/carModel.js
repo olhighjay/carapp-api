@@ -28,6 +28,11 @@ const carModel = new Schema(
       enum : ['excellent','fair','faulty'],
       default: 'excellent'
     },
+    type: {
+      type: String,
+      enum : ['motorcycle','saloon','suv','lorry','bus','trailer'],
+      default: 'saloon'
+    },
     status: {
       type: String,
       enum : ['available','unavailable','booked'],
@@ -39,7 +44,12 @@ const carModel = new Schema(
       default: 'staff',
       required: true,
     },
-    display_picture: {type: String}
+    display_picture: {type: String},
+    deleted_at: {
+      type: Date,
+      default: null,
+      required: false,
+    },
   }, {timestamps: true, 
     toJSON: { virtuals: true }, 
     toObject: { virtuals: true }

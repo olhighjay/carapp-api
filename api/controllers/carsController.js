@@ -7,68 +7,51 @@ const { query } = require('express-validator');
 function carsController(Car) {
   async function get(req, res, next){
     try{
-      const cars = await Car.find().sort({
-        createdAt : -1 //descending order
-    }).
-    exec();
-    // console.log(req.query);
-    if(req.query.condition){
-      query.condition = req.query.condition;
-    };
-    if(req.query.status){
-      query.status = req.query.status;
-    }
-    if(req.query.category){
-      query.category = req.query.category;
-    }
-    let filteredCar = cars && cars.filter(car => {
-      // console.log(post.category["name"]);
-      if(car.condition !== undefined && !req.query.status && !req.query.category){
-        return car.condition === query.condition
-      }
-      else if(car.status !== undefined && !req.query.condition && !req.query.category){
-        return car.status === query.status
-      }
-      else if(car.category !== undefined && !req.query.condition && !req.query.status){
-        return car.category === query.category
-      }
-    });
-    let finCars;
-    const carsFunc = () => {
-      if(req.query.condition || req.query.status ||  req.query.category){
-        finCars =  filteredCar;
-      }
-      else{
-        finCars = cars;
-      }
-      return finCars
-    }
-    const finalCars = carsFunc();
-    // console.log(postz);;
-    const response =  finalCars && finalCars.map(finalCar => {
-      let showCar = {
-        car: finalCar, 
-        request: {
-          type: 'GET',
-          url: `http://${req.headers.host}/api/cars/${finalCar._id}`,
-          viewByStatus: `http://${req.headers.host}/api/cars?status=${finalCar.status}`,
-          viewByCondition: `http://${req.headers.host}/api/cars?condition=${finalCar.condition}`,
-          viewByCategory: `http://${req.headers.host}/api/cars?category=${finalCar.category}`
-        }
-      };
-      return showCar;
-    })
-    // };
-    res.status(200).json({
-      count: finalCars.length,
-      Cars: response
-    });
-  }
+      const filter = {};
 
-  catch(err){
-    console.log(err);
-    res.status(500).json({error: err.message});
-  }
+       if(req.query.condition){
+        filter.condition = req.query.condition;
+      };
+      if(req.query.status){
+        filter.status = req.query.status;
+      };
+      if(req.query.category){
+        filter.category = req.query.category;
+      };
+      if(req.query.type){
+        filter.type = req.query.type;
+      };
+      filter.deleted_at = null;
+      // console.log(filter);
+      
+        const cars = await Car.find(filter).sort({
+          createdAt : -1   //descending order
+      }).
+      exec();
+      const response =  cars && cars.map(finalCar => {
+        let showCar = {
+          car: finalCar, 
+          request: {
+            type: 'GET',
+            url: `http://${req.headers.host}/api/cars/${finalCar._id}`,
+            viewByStatus: `http://${req.headers.host}/api/cars?status=${finalCar.status}`,
+            viewByCondition: `http://${req.headers.host}/api/cars?condition=${finalCar.condition}`,
+            viewByCategory: `http://${req.headers.host}/api/cars?category=${finalCar.category}`
+          }
+        };
+        return showCar;
+      })
+      
+      res.status(200).json({
+        count: cars.length,
+        Cars: response
+      });
+    }
+
+    catch(err){
+      console.log(err);
+      res.status(500).json({error: err.message});
+    }
   }
   async function post(req, res, next){
     console.log(req.file);
@@ -92,7 +75,7 @@ function carsController(Car) {
         properties: req.body.properties,
         condition: req.body.condition,
         status: req.body.status,
-        category: req.body.category
+        category: req.body.category,
       });
       if(req.file){
         car.display_picture= req.file.path;
@@ -122,11 +105,11 @@ function carsController(Car) {
   async   function getCarById(req, res, next){
     const id = req.params.carId;
     try{
-     
-      const car = await Car.findById(id);
+     const check = {'_id':id, 'deleted_at':null};
+      const car = await Car.find(check);
       // .select("product quantity _id")
       // const user = populate('user');
-        if(car){
+        if(car.length > 0){
           return res.status(200).json({
             Car: car,
             request: {
@@ -185,6 +168,7 @@ function carsController(Car) {
         car.display_picture = req.file.path;
       }
 
+      // console.log(car);
       await car.save();
       
       res.status(201).json({
