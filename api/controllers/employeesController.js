@@ -9,7 +9,7 @@ const { query } = require('express-validator');
 
 function employeesController(Employee) {
 
-  async function getEmployees(req, res, next){
+  async function getEmployeesForAdmin(req, res, next){
     try{
       const filter = {};
       if(req.query.category){
@@ -26,7 +26,7 @@ function employeesController(Employee) {
           request: {
             type: 'GET',
             url: `http://${req.headers.host}/api/employees/${finalEmployee._id}`,
-            viewByStatus: `http://${req.headers.host}/api/employees?role=${finalEmployee.role}`,
+            viewEmployees: `http://${req.headers.host}/api/employees?role=${finalEmployee.role}`,
             viewByCategory: `http://${req.headers.host}/api/employees?category=${finalEmployee.category}`
           }
         };
@@ -45,52 +45,26 @@ function employeesController(Employee) {
     }
   };
 
-  async function getUsers(req, res, next){
+  async function getUsersForSuperAdmin(req, res, next){
     try{
-        const users = await Employee.find({role: ['admin', 'employee']});
-        
-        if(req.query.role){
-          query.role = req.query.role;
+
+      const filter = {};
+      if(req.query.category){
+        filter.category = req.query.category;
+      };
+      filter.role = ['admin', 'employee'];
+      filter.deleted_at = null;
+      const users = await Employee.find(filter);
+      
+      const response =  users && users.map(finalUser => {
+        let showUser = {
+          employee: finalUser, 
         };
-        if(req.query.category){
-          query.category = req.query.category;
-        }
-        let filteredUsers = users && users.filter(user => {
-          // console.log(post.category["name"]);
-          if(user.role !== undefined && !req.query.category){
-            return user.role === query.role
-          }
-          else if(user.category !== undefined && !req.query.role){
-            return user.category === query.category
-          }
-        });
-        let finUsers;
-        const usersFunc = () => {
-          if(req.query.role ||  req.query.category){
-            finUsers =  filteredUsers;
-          }
-          else{
-            finUsers = users;
-          }
-          return finUsers
-        }
-        const finalUsers = usersFunc();
-        // console.log(postz);;
-        const response =  finalUsers && finalUsers.map(finalUser => {
-          let showUser = {
-            employee: finalUser, 
-            request: {
-              type: 'GET',
-              url: `http://${req.headers.host}/api/employees/${finalUser._id}`,
-              viewByStatus: `http://${req.headers.host}/api/employees?role=${finalUser.role}`,
-              viewByCategory: `http://${req.headers.host}/api/employees?category=${finalUser.category}`
-            }
-          };
-          return showUser;
-        });
+        return showUser;
+      });
         
         res.status(200).json({
-          count: finalUsers.length,
+          count: users.length,
           employees:  response
         });
 
@@ -157,9 +131,15 @@ function employeesController(Employee) {
     const updateToArray = Object.keys(update)
    
     try{
-     const employee = await Employee.find({role: 'employee', _id:id});
+      const filter = {};
+      filter._id = id;
+      filter.role = 'employee';
+      filter.deleted_at = null;
+
+      const employee = await Employee.find(filter);
       // console.log(employee);
       if(employee.length < 1){
+        console.log('no data');
         return res.status(404).json({
           error: "Employee not found"
         });
@@ -215,30 +195,39 @@ function employeesController(Employee) {
   async function deleteEmployee(req, res, next){
     const id = req.params.employeeId;
     try{
-      const employee = await Employee.find({role: 'employee', _id:id});
+      const filter = {};
+      filter._id = id;
+      filter.role = 'employee';
+      filter.deleted_at = null;
+
+      const employee = await Employee.find(filter);
       // console.log(employee);
       if(employee.length < 1){
           return res.status(404).json({
             error: "Employee does not exist"
           });
         }
-        await employee[0].remove();
-        res.status(200).json({
-          message: "Employee deleted successfully",
-          request: {
-            type: 'POST',
-            description: 'Create new employee', 
-            url: 'http://localhost:4000/api/employees/',
-            body: {
-              firstName: 'String, required',
-              lastName: 'String, required',
-              email: 'String, required, unique',
-              password: 'String, required',
-              role: 'String',
-              category: 'String',
-            }
+        
+      const now = new Date();
+      employee[0].deleted_at = now;
+      await employee[0].save();
+      // await employee[0].remove();
+      res.status(200).json({
+        message: "Employee deleted successfully",
+        request: {
+          type: 'POST',
+          description: 'Create new employee', 
+          url: 'http://localhost:4000/api/employees/',
+          body: {
+            firstName: 'String, required',
+            lastName: 'String, required',
+            email: 'String, required, unique',
+            password: 'String, required',
+            role: 'String',
+            category: 'String',
           }
-        });
+        }
+      });
     }
     catch(err) {
       console.log(err);
@@ -252,8 +241,8 @@ function employeesController(Employee) {
 
 
   return {
-    getEmployees,
-    getUsers,
+    getEmployeesForAdmin,
+    getUsersForSuperAdmin,
     getEmployeeById,
     updateEmployee,
     deleteEmployee

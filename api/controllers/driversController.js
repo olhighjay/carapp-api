@@ -103,10 +103,15 @@ function driversController(Driver) {
     
     const id = req.params.driverId;
     const update = req.body;
-    const updateToArray = Object.keys(update)
+    const updateToArray = Object.keys(update);
    
     try{
-     const driver = await Driver.find({role: 'driver', _id:id});
+      const filter = {};
+      filter._id = id;
+      filter.role = 'driver';
+      filter.deleted_at = null;
+
+     const driver = await Driver.find(filter);
       // console.log(driver);
       if(driver.length < 1){
         return res.status(404).json({
@@ -166,30 +171,37 @@ function driversController(Driver) {
   async function deleteDriver(req, res, next){
     const id = req.params.driverId;
     try{
-      const driver = await Driver.find({role: 'driver', _id:id});
+      const filter = {};
+      filter._id = id;
+      filter.role = 'driver';
+      filter.deleted_at = null;
+
+      const driver = await Driver.find(filter);
       // console.log(driver);
       if(driver.length < 1){
-          return res.status(404).json({
-            error: "driver does not exist"
-          });
-        }
-        await driver[0].remove();
-        res.status(200).json({
-          message: "driver deleted successfully",
-          request: {
-            type: 'POST',
-            description: 'Create new driver', 
-            url: 'http://localhost:4000/api/drivers/',
-            body: {
-              firstName: 'String, required',
-              lastName: 'String, required',
-              email: 'String, required, unique',
-              password: 'String, required',
-              role: 'String',
-              category: 'String',
-            }
-          }
+        return res.status(404).json({
+          error: "driver does not exist"
         });
+      }
+      const now = new Date();
+      driver[0].deleted_at = now;
+      await driver[0].save();
+      res.status(200).json({
+        message: "driver deleted successfully",
+        request: {
+          type: 'POST',
+          description: 'Create new driver', 
+          url: 'http://localhost:4000/api/drivers/',
+          body: {
+            firstName: 'String, required',
+            lastName: 'String, required',
+            email: 'String, required, unique',
+            password: 'String, required',
+            role: 'String',
+            category: 'String',
+          }
+        }
+      });
     }
     catch(err) {
       console.log(err);

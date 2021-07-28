@@ -48,11 +48,11 @@ upload.any();
 
 
 
-  router.get('/', employeesController.getEmployees);
-  router.get('/all', employeesController.getUsers);
+  router.get('/', employeesController.getEmployeesForAdmin);
+  router.get('/all', employeesController.getUsersForSuperAdmin);
   router.get('/:employeeId', employeesController.getEmployeeById );
   router.post('/:employeeId', upload.single('display_picture'), employeesController.updateEmployee);
-  router.delete('/:employeeId', employeesController.deleteEmployee);
+  router.post('/x/:employeeId', employeesController.deleteEmployee);
 
 
 module.exports = router;

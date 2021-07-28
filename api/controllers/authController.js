@@ -56,7 +56,7 @@ function employeesController(Employee) {
     
     try{
       //check for email uniqueness
-      const employee = await Employee.findOne({ email: req.body.email});
+      const employee = await Employee.findOne({ email: req.body.email, deleted_at: null});
       if(!employee){
         return res.status(401).json({
           message: 'Auth Failed on email'

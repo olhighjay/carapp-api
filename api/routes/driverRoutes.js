@@ -51,7 +51,7 @@ upload.any();
   router.get('/', driversController.getDrivers);
   router.get('/:driverId', driversController.getDriverById );
   router.post('/:driverId', upload.single('display_picture'), driversController.updateDriver);
-  router.delete('/:driverId', driversController.deleteDriver);
+  router.post('/x/:driverId', driversController.deleteDriver);
 
 
 module.exports = router;

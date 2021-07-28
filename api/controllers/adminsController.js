@@ -99,10 +99,15 @@ function adminsController(Admin) {
     
     const id = req.params.adminId;
     const update = req.body;
-    const updateToArray = Object.keys(update)
+    const updateToArray = Object.keys(update);
    
     try{
-     const admin = await Admin.find({role: 'admin', _id:id});
+      const filter = {};
+      filter._id = id;
+      filter.role = 'admin';
+      filter.deleted_at = null;
+
+      const admin = await Admin.find(filter);
       // console.log(admin);
       if(admin.length < 1){
         return res.status(404).json({
@@ -161,30 +166,37 @@ function adminsController(Admin) {
   async function deleteAdmin(req, res, next){
     const id = req.params.adminId;
     try{
-      const admin = await Admin.find({role: 'admin', _id:id});
+      const filter = {};
+      filter._id = id;
+      filter.role = 'admin';
+      filter.deleted_at = null;
+
+      const admin = await Admin.find(filter);
       // console.log(admin);
       if(admin.length < 1){
           return res.status(404).json({
             error: "admin does not exist"
           });
-        }
-        await admin[0].remove();
-        res.status(200).json({
-          message: "admin deleted successfully",
-          request: {
-            type: 'POST',
-            description: 'Create new admin', 
-            url: 'http://localhost:4000/api/admins/',
-            body: {
-              firstName: 'String, required',
-              lastName: 'String, required',
-              email: 'String, required, unique',
-              password: 'String, required',
-              role: 'String',
-              category: 'String',
-            }
+      };
+      const now = new Date();
+      admin[0].deleted_at = now;
+      await admin[0].save();
+      res.status(200).json({
+        message: "admin deleted successfully",
+        request: {
+          type: 'POST',
+          description: 'Create new admin', 
+          url: 'http://localhost:4000/api/admins/',
+          body: {
+            firstName: 'String, required',
+            lastName: 'String, required',
+            email: 'String, required, unique',
+            password: 'String, required',
+            role: 'String',
+            category: 'String',
           }
-        });
+        }
+      });
     }
     catch(err) {
       console.log(err);

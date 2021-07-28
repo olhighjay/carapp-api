@@ -54,18 +54,10 @@ function carsController(Car) {
     }
   }
   async function post(req, res, next){
-    console.log(req.file);
-    console.log(req.body);
+    // console.log(req.file);
+    // console.log(req.body);
     // const id = req.body.category;
     try{
-      // const category = await Category.findById(id);
-      // // console.log(category);
-      //   if(!category){
-      //     return res.status(404).json({
-      //       error: "Category does not exist"
-      //     });
-      //   }
-        // console.log(req);
       const car = new Car({
         _id: new mongoose.Types.ObjectId(),
         plate_number: req.body.plate_number,
@@ -74,6 +66,7 @@ function carsController(Car) {
         color: req.body.color,
         properties: req.body.properties,
         condition: req.body.condition,
+        type: req.body.type,
         status: req.body.status,
         category: req.body.category,
       });
@@ -105,7 +98,7 @@ function carsController(Car) {
   async   function getCarById(req, res, next){
     const id = req.params.carId;
     try{
-     const check = {'_id':id, 'deleted_at':null};
+     const check = {_id:id, deleted_at:null};
       const car = await Car.find(check);
       // .select("product quantity _id")
       // const user = populate('user');
@@ -143,9 +136,12 @@ function carsController(Car) {
     const keysArray = Object.keys(update);
    
     try{
-      const car = await Car.findById(id);
+      const filter = {};
+      filter._id = id;
+      filter.deleted_at = null;
+      const car = await Car.find(filter);
       // return res.send(catg);
-      if(!car){
+      if(car.length < 1){
         return res.status(404).json({
           error: "Car not found"
         });
@@ -157,19 +153,19 @@ function carsController(Car) {
       //Update cover image
       if(req.file){
         // delete the image from storage
-        if(car.display_picture){
-          fs.unlink( car.display_picture, err => { 
+        if(car[0].display_picture){
+          fs.unlink( car[0].display_picture, err => { 
             if(err){
               console.log(err);
             }
           });
         }
         // upload the image from  the database
-        car.display_picture = req.file.path;
+        car[0].display_picture = req.file.path;
       }
 
       // console.log(car);
-      await car.save();
+      await car[0].save();
       
       res.status(201).json({
         message: "Car updated successfully",
@@ -187,46 +183,50 @@ function carsController(Car) {
   async function deleteCar(req, res, next){
     const id = req.params.carId;
     try{
-     
-      const car = await Car.findById(id);
-        if(car){
-          if(car.display_picture){
-            // delete the image from storage
-            fs.unlink( car.display_picture, err => { 
-              if(err){
-                console.log(err);
-              }
-            });
-          }
-          await car.remove();
-          res.status(200).json({
-            message: "Car deleted successfully",
-            request: {
-              type: 'POST',
-              description: 'Create new post', 
-              url: 'http://localhost:4000/api/cars/',
-              body: {
-                title: 'String, required',
-                body: 'String, required',
-                plate_number: 'String, required',
-                brand: 'String',
-                model: 'String',
-                color: 'String',
-                properties: 'String',
-                condition: 'String',
-                status: 'String',
-                category: 'String',
-                display_picture: 'image, max-5mb, jpg-jpeg-png',
-              }
+      const filter = {};
+      filter._id = id;
+      filter.deleted_at = null;
+      const car = await Car.find(filter);
+      if(car.length > 0){
+        // if(car[0].display_picture){
+        //   // delete the image from storage
+        //   fs.unlink( car[0].display_picture, err => { 
+        //     if(err){
+        //       console.log(err);
+        //     }
+        //   });
+        // }
+        const now = new Date();
+        car[0].deleted_at = now;
+        await car[0].save();
+        res.status(200).json({
+          message: "Car deleted successfully",
+          request: {
+            type: 'POST',
+            description: 'Create new post', 
+            url: 'http://localhost:4000/api/cars/',
+            body: {
+              title: 'String, required',
+              body: 'String, required',
+              plate_number: 'String, required',
+              brand: 'String',
+              model: 'String',
+              color: 'String',
+              properties: 'String',
+              condition: 'String',
+              status: 'String',
+              category: 'String',
+              display_picture: 'image, max-5mb, jpg-jpeg-png',
             }
-          });
-        }
-        else{
-          res.status(404).json({
-            error: "Post not found"
-          });
+          }
+        });
+      }
+      else{
+        res.status(404).json({
+          error: "Post not found"
+        });
 
-        }
+      }
         
       
      

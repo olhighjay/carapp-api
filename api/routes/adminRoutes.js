@@ -51,7 +51,7 @@ upload.any();
   router.get('/',adminsController.getAdmins);
   router.get('/:adminId', adminsController.getAdminById );
   router.post('/:adminId', upload.single('display_picture'), adminsController.updateAdmin);
-  router.delete('/:adminId', adminsController.deleteAdmin);
+  router.post('/x/:adminId', adminsController.deleteAdmin);
 
 
 module.exports = router;

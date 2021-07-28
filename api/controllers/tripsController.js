@@ -41,7 +41,7 @@ function tripsController(Trip, Car, Employee) {
       if(req.query.car){
         filter.car = req.query.car;
       };
-      console.log(filter);
+      // console.log(filter);
       
         const trips = await Trip.find(filter).populate(["car", "driver", "employee", "creator"]).sort({
           createdAt : -1   //descending order
@@ -143,13 +143,13 @@ function tripsController(Trip, Car, Employee) {
         })
       }
 
-      const employeeDrivers = await Employee.find({role: 'driver' , category: employee.category, status: ['available','booked']});
-      const availableDrivers = await Employee.find({role: 'driver', category: employee.category, status: ['available']});
-      const bookedDrivers = await Employee.find({role: 'driver', category: employee.category, status: 'booked'});
+      const employeeDrivers = await Employee.find({role: 'driver' , category: employee.category, status: ['available','booked'], deleted_at:null});
+      const availableDrivers = await Employee.find({role: 'driver', category: employee.category, status: ['available'], deleted_at:null});
+      const bookedDrivers = await Employee.find({role: 'driver', category: employee.category, status: 'booked', deleted_at:null});
 
-      const employeeCars = await Car.find({ category: employee.category, status: ['available','booked']});
-      const availableCars = await Car.find({ category: employee.category, status: ['available']});
-      const bookedCars = await Car.find({ category: employee.category, status: 'booked'});
+      const employeeCars = await Car.find({ category: employee.category, status: ['available','booked'], deleted_at: null});
+      const availableCars = await Car.find({ category: employee.category, status: ['available'], deleted_at:null});
+      const bookedCars = await Car.find({ category: employee.category, status: 'booked', deleted_at:null});
       
       // Function to differentiate between 2 arrays
       function arr_diff (a1, a2) {
@@ -328,7 +328,7 @@ function tripsController(Trip, Car, Employee) {
             var unToday = unclashed.filter(unclash => {
               return !todayObjIds.includes(unclash);
             });
-            console.log("unToday");
+            // console.log("unToday");
             console.log(unToday);
             // If we have such drivers like untoday drivers, then they should be our drivers
             if(unToday.length > 0) {
