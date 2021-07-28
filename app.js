@@ -15,6 +15,7 @@ const driverRouter = require('./api/routes/driverRoutes');
 const adminRouter = require('./api/routes/adminRoutes');
 const roleRouter = require('./api/routes/roleRoutes');
 const tripRouter = require('./api/routes/tripRoutes');
+const profileRouter = require('./api/routes/profileRoutes');
 
 // var expressBusboy = require('express-busboy');
 // expressBusboy.extend(app);
@@ -41,6 +42,7 @@ app.use((req, res, next) => {
 
 
 app.use('/api/', authRouter);
+app.use('/api/', profileRouter);
 app.use('/api/cars', carRouter);
 app.use('/api/employees', employeeRouter);
 app.use('/api/drivers', driverRouter);
