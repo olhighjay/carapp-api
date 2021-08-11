@@ -43,9 +43,9 @@ app.use((req, res, next) => {
 
 app.use('/api/', authRouter);
 app.use('/api/', profileRouter);
-app.use('/api/cars', carRouter);
+app.use('/api/', carRouter);
 app.use('/api/employees', employeeRouter);
-app.use('/api/drivers', driverRouter);
+app.use('/api/', driverRouter);
 app.use('/api/admins', adminRouter);
 app.use('/api/roles', roleRouter);
 app.use('/api/trips', tripRouter);

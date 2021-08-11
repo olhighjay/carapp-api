@@ -9,8 +9,6 @@ const authWare = require('../middlewares/auth');
 const validationWare = require('../middlewares/validateemployee');
 const validationErrors = require('../middlewares/validationErrors');
 const Driver = require('../models/employeeModel');
-// const Post = require('../models/postModel');
-// const driversController = require('../controllers/driversController')(User, Post);
 const driversController = require('../controllers/driversController')(Driver);
 
 const router = express.Router();
@@ -48,10 +46,11 @@ upload.any();
 
 
 
-  router.get('/', driversController.getDrivers);
-  router.get('/:driverId', driversController.getDriverById );
-  router.post('/:driverId', upload.single('display_picture'), driversController.updateDriver);
-  router.post('/x/:driverId', driversController.deleteDriver);
+  router.get('/drivers', driversController.getDrivers);
+  router.get('/drivers/:driverId', driversController.getDriverById );
+  router.post('/drivers/:driverId', upload.single('display_picture'), driversController.updateDriver);
+  router.post('/drivers/x/:driverId', driversController.deleteDriver);
+  router.get('/mydrivers', driversController.getMyDrivers);
 
 
 module.exports = router;

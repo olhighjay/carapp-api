@@ -1,10 +1,9 @@
 const chalk = require('chalk');
 const mongoose = require('mongoose');
 const fs = require('fs'); 
-const { response } = require('express');
-const { query } = require('express-validator');
+const jwt = require('jsonwebtoken');
 
-function carsController(Car) {
+function carsController(Car, Employee) {
   async function get(req, res, next){
     try{
       const filter = {};
@@ -239,6 +238,42 @@ function carsController(Car) {
     }
   }
 
+  async function getMyCars(req, res, next){
+    try{
+      if(!req.headers.authorization){
+        // console.log('Login asshole');
+        throw new Error('User needs to Login');
+      }
+      const token = req.headers.authorization.split(" ")[1];
+      const userData = jwt.verify(token, process.env.JWT_KEY);
+      // console.log(userData);
+      const employee = await Employee.findById(userData.userId);
+      // console.log(employee);
+      
+      const filter = {};
+      filter.deleted_at = null;
+      filter.category = [employee.category, 'all'];
+      const cars = await Car.find(filter).sort({firstName: 1}); // ascending
+      
+      const response =  cars && cars.map(car => {
+        let showCar = {
+          car: car
+        };
+        return showCar;
+      });
+      
+      res.status(200).json({
+        count: cars.length,
+        cars:  response
+      });
+
+    }
+    catch(err){
+      console.log(err);
+      res.status(500).json({error: err});
+    }
+  };
+
 
 
   return {
@@ -246,7 +281,8 @@ function carsController(Car) {
     post,
     getCarById,
     updateCar,
-    deleteCar
+    deleteCar,
+    getMyCars
   };
 };
 

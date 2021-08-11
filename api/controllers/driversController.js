@@ -20,7 +20,7 @@ function driversController(Driver) {
       };
       filter.role = 'driver';
       filter.deleted_at = null;
-      const drivers = await Driver.find(filter);
+      const drivers = await Driver.find(filter).populate('car').sort({firstName: 1}); // ascending
       
       const response =  drivers && drivers.map(finaldriver => {
         let showdriver = {
@@ -53,7 +53,7 @@ function driversController(Driver) {
     try{
       const check = {_id:id, deleted_at:null, role: 'driver'};
      
-      const driver = await Driver.find(check);
+      const driver = await Driver.find(check).populate('car').sort({firstName: 1}); // ascending
       // .select("product quantity _id")
       // const user = populate('user');
       // const posts = await Post.find({author: user._id}).select("title")
@@ -71,6 +71,7 @@ function driversController(Driver) {
             "display_picture" : driver[0].display_picture,
             "createdAt": driver[0].createdAt,
             "updatedAt": driver[0].updatedAt,
+              "car": driver[0].car
             },
             // writtenPosts: {
             //   // count: posts.length,
@@ -156,6 +157,7 @@ function driversController(Driver) {
           "display_picture" : driver[0].display_picture,
           "createdAt": driver[0].createdAt,
           "updatedAt": driver[0].updatedAt,
+          "car": driver[0].car
           }
       });  
     }
@@ -209,7 +211,44 @@ function driversController(Driver) {
         error: err.message
       });
     };
-  }
+  };
+
+  async function getMyDrivers(req, res, next){
+    try{
+      if(!req.headers.authorization){
+        // console.log('Login asshole');
+        throw new Error('User needs to Login');
+      }
+      const token = req.headers.authorization.split(" ")[1];
+      const userData = jwt.verify(token, process.env.JWT_KEY);
+      // console.log(userData);
+      const employee = await Driver.findById(userData.userId);
+      // console.log(employee);
+      
+      const filter = {};
+      filter.role = 'driver';
+      filter.deleted_at = null;
+      filter.category = [employee.category, 'all'];
+      const drivers = await Driver.find(filter).populate('car').sort({firstName: 1}); // ascending
+      
+      const response =  drivers && drivers.map(finaldriver => {
+        let showdriver = {
+          driver: finaldriver
+        };
+        return showdriver;
+      });
+      
+      res.status(200).json({
+        count: drivers.length,
+        drivers:  response
+      });
+
+    }
+    catch(err){
+      console.log(err);
+      res.status(500).json({error: err});
+    }
+  };
 
 
 
@@ -218,7 +257,8 @@ function driversController(Driver) {
     getDrivers,
     getDriverById,
     updateDriver,
-    deleteDriver
+    deleteDriver,
+    getMyDrivers
   };
 }
 

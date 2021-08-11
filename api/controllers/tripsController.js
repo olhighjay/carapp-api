@@ -143,13 +143,13 @@ function tripsController(Trip, Car, Employee) {
         })
       }
 
-      const employeeDrivers = await Employee.find({role: 'driver' , category: employee.category, status: ['available','booked'], deleted_at:null});
-      const availableDrivers = await Employee.find({role: 'driver', category: employee.category, status: ['available'], deleted_at:null});
-      const bookedDrivers = await Employee.find({role: 'driver', category: employee.category, status: 'booked', deleted_at:null});
+      const employeeDrivers = await Employee.find({role: 'driver' , category: [employee.category,'all'], status: ['available','booked'], deleted_at:null});
+      const availableDrivers = await Employee.find({role: 'driver', category: [employee.category,'all'], status: ['available'], deleted_at:null});
+      const bookedDrivers = await Employee.find({role: 'driver', category: [employee.category,'all'], status: 'booked', deleted_at:null});
 
-      const employeeCars = await Car.find({ category: employee.category, status: ['available','booked'], deleted_at: null});
-      const availableCars = await Car.find({ category: employee.category, status: ['available'], deleted_at:null});
-      const bookedCars = await Car.find({ category: employee.category, status: 'booked', deleted_at:null});
+      const employeeCars = await Car.find({ category: [employee.category,'all'], status: ['available','booked'], deleted_at: null});
+      const availableCars = await Car.find({ category: [employee.category,'all'], status: ['available'], deleted_at:null});
+      const bookedCars = await Car.find({ category: [employee.category,'all'], status: 'booked', deleted_at:null});
       
       // Function to differentiate between 2 arrays
       function arr_diff (a1, a2) {

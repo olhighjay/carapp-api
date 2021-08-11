@@ -4,13 +4,13 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const Car = require('../models/carModel');
 // const Category = require('../models/categoryModel');
-// const User = require('../models/userModel');
+const Employee = require('../models/employeeModel');
 // const authWare = require('../middlewares/auth');
 // const adminWare = require('../middlewares/adminAuth');
 const carValidation = require('../middlewares/validateCar');
 const validationErrors = require('../middlewares/validationErrors');
 // const carsController = require('../controllers/carsController')(Post, Category, User);
-const carsController = require('../controllers/carsController')(Car);
+const carsController = require('../controllers/carsController')(Car, Employee);
 const router = express.Router();
 
 
@@ -46,11 +46,12 @@ const upload = multer({
 upload.any();
 
 
-router.get('/', carsController.get);
-router.post('/', [carValidation], validationErrors, upload.single('display_picture'), carsController.post);
-router.get('/:carId', carsController.getCarById);
-router.post('/:carId', upload.single('display_picture'), carsController.updateCar);
-router.delete('/:carId', carsController.deleteCar);
+router.get('/cars/', carsController.get);
+router.post('/cars', [carValidation], validationErrors, upload.single('display_picture'), carsController.post);
+router.get('/cars/:carId', carsController.getCarById);
+router.post('/cars/:carId', upload.single('display_picture'), carsController.updateCar);
+router.delete('/cars/:carId', carsController.deleteCar);
+router.get('/mycars', carsController.getMyCars);
 
 
 
