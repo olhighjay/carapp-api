@@ -43,6 +43,7 @@ upload.any();
 
 
   router.get('/profile',profileController.viewProfile);
-  // router.post('/profile/update', upload.single('display_picture'), adminsController.updateAdmin);
+  router.post('/profile', upload.single('display_picture'), profileController.updateProfile);
+  router.post('/profile/pass',  profileController.updatePassword);
 
 module.exports = router;

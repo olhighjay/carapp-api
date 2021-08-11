@@ -37,7 +37,7 @@ const employeeModel = new Schema(
     },
     category: {
       type: String,
-      enum : ['executive','senior staff','staff'],
+      enum : ['all', 'executive','senior staff','staff'],
       default: 'staff',
       required: true,
     },
